@@ -1,0 +1,10 @@
+name: RisenBoss
+description: A supporting plugin for the FallenMC minecraft server that adds the risen boss.
+version: 1.0
+author: FallenMC team
+main: xyz.fallenmc.main.RisenMain
+
+commands:
+  rise:
+    description: Closed-circuit command mainly used for the FallenMC core plugin to activate the risen boss for a certain player. Can also be used by server admins.
+    usage: /<command> <player>
