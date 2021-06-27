@@ -21,14 +21,15 @@ public class Ability {
         if(!cd){
             ability.activationInternal(player);
             cooldown(player);
-            Bukkit.getServer().broadcastMessage(boss.rankColor + player.getName() + " used " + ChatColor.GOLD + ability.name + ChatColor.YELLOW + "!");
+            if(!ability.equals(RisenAbility.REJUVENATE))
+                Bukkit.getServer().broadcastMessage(boss.rankColor + player.getName() + ChatColor.YELLOW + " used " + ChatColor.GOLD + ability.name + ChatColor.YELLOW + "!");
         }else player.sendMessage(ChatColor.RED + "This ability is on cooldown for " + cdLeft + " more seconds!");
     }
 
     public boolean cd = false;
     private int cdLeft = 0;
 
-    public void cooldown(Player player){
+    private void cooldown(Player player){
         cd = true;
         cdLeft = ability.cooldown;
         new BukkitRunnable() {

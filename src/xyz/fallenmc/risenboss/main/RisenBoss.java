@@ -28,8 +28,8 @@ import java.util.*;
 
 
 public final class RisenBoss {
-    public HashMap<String, Ability> abilityInstances = new HashMap<>();
-    public String rankColor;
+    public final HashMap<String, Ability> abilityInstances = new HashMap<>();
+    public final String rankColor;
     HashMap<UUID, Double> damagers = new HashMap<>();
     public RisenBoss(Player player, BossPreferences abilities){
         RisenMain.currentBoss = this;
@@ -85,7 +85,6 @@ public final class RisenBoss {
     public final String name = getPlayer().getName();
     private final NPC dummyPlayer;
     private int damageTaken = 0;
-    private int secondsSurvived = 0;
     private static final int secondsToReach = 600;
     private int secondsLeft = secondsToReach;
     private BukkitTask fallenFlames;
@@ -120,14 +119,23 @@ public final class RisenBoss {
 
     public void bossDamage(UUID damager, double damage){
         if(!damager.equals(uuid)){
-            damagers.putIfAbsent(damager, 0.00);
-            damagers.put(damager, damagers.get(damager) + damage);
+            damagers.put(damager, damagers.containsKey(damager) ? damagers.get(damager) + damage : damage);
             damageTaken += damage;
+            Player player = getPlayer();
+            float healthFloat = (float) (player.getHealth() / player.getMaxHealth());
+            for(UUID uuid : BossBarUtil.getPlayers()){
+                BossBarUtil.updateHealth(Bukkit.getPlayer(uuid), healthFloat);
+            }
         }
     }
 
     public void bossHit(double damage){
         damageDealt += damage;
+        Player player = getPlayer();
+        float healthFloat = (float) (player.getHealth() / player.getMaxHealth());
+        for(UUID uuid : BossBarUtil.getPlayers()){
+            BossBarUtil.updateHealth(Bukkit.getPlayer(uuid), healthFloat);
+        }
     }
 
 
@@ -143,6 +151,7 @@ public final class RisenBoss {
         fallenFlames.cancel();
         dummyPlayer.destroy();
         timer.cancel();
+        callout.cancel();
         BossBarUtil.clearAllBars();
         Player player = getPlayer();
         player.getInventory().setContents(prevPlayerInventory);
@@ -160,11 +169,12 @@ public final class RisenBoss {
                 secondsLeft--;
                 int minutesLeft = Math.floorDiv(secondsLeft, 60);
                 int secondsWithoutMinutes = secondsLeft % 60;
-                Set<String> bossBars = BossBarUtil.getPlayers();
+                Set<UUID> bossBars = BossBarUtil.getPlayers();
+                String text = ChatColor.GOLD + ChatColor.BOLD.toString() + "RISEN BOSS: " + rankColor + ChatColor.BOLD + player.getName() + ChatColor.YELLOW +  String.format("%d:%02d", minutesLeft, secondsWithoutMinutes);
                 for(Player player : Bukkit.getOnlinePlayers()){
-                    if(bossBars.contains(player.getName())){
-                        BossBarUtil.updateText(player, String.format("%d:%02d", minutesLeft, secondsWithoutMinutes));
-                    }
+                    if(bossBars.contains(player.getUniqueId())){
+                        BossBarUtil.updateText(player, text);
+                    }else BossBarUtil.setBar(player, text, (float) (player.getHealth() / player.getMaxHealth()));
                 }
                 if(secondsLeft <= 0){
                     endBoss(EndReason.TIMER_FINISHED);
@@ -185,7 +195,6 @@ public final class RisenBoss {
     }
 
     private void calloutInit(Location location, String playerName){
-        BukkitRunnable bukkitRunnable;
         callout = Bukkit.getScheduler().runTaskTimer(RisenMain.getInstance(), () -> {
             Bukkit.getServer().broadcastMessage(playerName + ChatColor.GRAY + " is at " + ChatColor.YELLOW + "(" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")" + ChatColor.YELLOW + "!" + ChatColor.GRAY + " Come and get them!");
             MiscUtils.spawnFirework(location, 5, false, true, FireworkEffect.Type.BURST, Color.YELLOW);

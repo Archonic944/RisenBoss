@@ -8,9 +8,9 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BossBarUtil {
 
-    private static final Map<String, EntityEnderDragon> dragons = new ConcurrentHashMap<>();
+    private static final Map<UUID, EntityEnderDragon> dragons = new ConcurrentHashMap<>();
 
     public static void setBar(Player p, String text, float healthPercent) {
         Location loc = p.getLocation();
@@ -46,22 +46,22 @@ public class BossBarUtil {
             ex.printStackTrace();
         }
 
-        dragons.put(p.getName(), dragon);
+        dragons.put(p.getUniqueId(), dragon);
         ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
     }
 
     public static void removeBar(Player p) {
-        if(dragons.containsKey(p.getName())) {
-            PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(dragons.get(p.getName()).getId());
-            dragons.remove(p.getName());
+        if(dragons.containsKey(p.getUniqueId())) {
+            PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(dragons.get(p.getUniqueId()).getId());
+            dragons.remove(p.getUniqueId());
             ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
         }
     }
 
     public static void teleportBar(Player p) {
-        if(dragons.containsKey(p.getName())) {
+        if(dragons.containsKey(p.getUniqueId())) {
             Location loc = p.getLocation();
-            PacketPlayOutEntityTeleport packet = new PacketPlayOutEntityTeleport(dragons.get(p.getName()).getId(),
+            PacketPlayOutEntityTeleport packet = new PacketPlayOutEntityTeleport(dragons.get(p.getUniqueId()).getId(),
                     (int) loc.getX() * 32, (int) (loc.getY() - 100) * 32, (int) loc.getZ() * 32,
                     (byte) ((int) loc.getYaw() * 256 / 360), (byte) ((int) loc.getPitch() * 256 / 360), false);
             ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
@@ -77,7 +77,7 @@ public class BossBarUtil {
     }
 
     public static void updateBar(Player p, String text, float healthPercent) {
-        if(dragons.containsKey(p.getName())) {
+        if(dragons.containsKey(p.getUniqueId())) {
             DataWatcher watcher = new DataWatcher(null);
             watcher.a(0, (byte) 0x20);
             if (healthPercent != -1) watcher.a(6, (healthPercent * 200) / 100);
@@ -88,12 +88,12 @@ public class BossBarUtil {
             watcher.a(11, (byte) 1);
             watcher.a(3, (byte) 1);
 
-            PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(dragons.get(p.getName()).getId(), watcher, true);
+            PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(dragons.get(p.getUniqueId()).getId(), watcher, true);
             ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet);
         }
     }
 
-    public static Set<String> getPlayers() {
+    public static Set<UUID> getPlayers() {
         return dragons.keySet();
     }
 

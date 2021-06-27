@@ -4,12 +4,10 @@ import de.tr7zw.nbtapi.NBTCompound;
 import de.tr7zw.nbtapi.NBTEntity;
 import de.tr7zw.nbtapi.NBTItem;
 import me.zach.DesertMC.GameMechanics.Events;
+import me.zach.DesertMC.Utils.ActionBar.ActionBarUtils;
 import me.zach.DesertMC.Utils.Particle.ParticleEffect;
 import me.zach.DesertMC.Utils.StringUtils.StringUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
@@ -18,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -26,6 +25,7 @@ import org.bukkit.util.Vector;
 import xyz.fallenmc.risenboss.main.RisenMain;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -46,7 +46,7 @@ public enum RisenAbility implements Listener {
                     if(toDamage != null) {
                         toDamage.damage(10);
                         knockedEntity.setVelocity(knockedEntity.getVelocity().multiply(2));
-                        knockedEntity.getWorld().playSound(knockedEntity.getLocation(), Sound.DIG_WOOD, 10, 0.85f);
+                        knockedEntity.getWorld().playSound(knockedEntity.getLocation(), Sound.ZOMBIE_WOODBREAK, 10, 0.85f);
                         UUID uuid = knockedEntity.getUniqueId();
                         Events.invincible.add(uuid);
                         Bukkit.getScheduler().runTaskLater(RisenMain.getInstance(), () -> Events.invincible.remove(uuid), 15);
@@ -85,17 +85,18 @@ public enum RisenAbility implements Listener {
         @Override
         protected void activationInternal(Player player){
             Vector velocity = player.getVelocity();
+            Location location = player.getLocation();
             player.setVelocity(velocity.setY(velocity.getY() + 4));
-            player.getWorld().playSound(player.getLocation(), Sound.ENDERDRAGON_WINGS, 10, 0.8f);
+            player.getWorld().playSound(location, Sound.ENDERDRAGON_WINGS, 10, 0.8f);
             Bukkit.getScheduler().runTaskLater(RisenMain.getInstance(), () -> {
                 player.setVelocity(player.getVelocity().setY(-5));
-                Entity playerEntity = player;
                 new BukkitRunnable(){
                     public void run(){
-                        if(playerEntity.isOnGround()){
-                            player.getWorld().playSound(player.getLocation(), Sound.DIG_GRASS, 10, 0.9f);
+                        if(((Entity) player).isOnGround()){
+                            player.getWorld().playSound(location, Sound.DIG_GRASS, 10, 0.9f);
+                            ParticleEffect.BlockData data = new ParticleEffect.BlockData(location.getBlock().getType(), (byte) 0);
                             for(int i = 0; i<10; i++){
-                                ParticleEffect.BLOCK_CRACK.display(new ParticleEffect.BlockData(Material.GRASS, (byte) 1), (float) Math.random() * 2, (float) Math.random() * 2,  (float) Math.random() * 2, 1, 1, player.getLocation(), 10);
+                                ParticleEffect.BLOCK_CRACK.display(data, (float) Math.random() * 2, (float) Math.random() * 2,  (float) Math.random() * 2, 1, 1, location, 10);
                             }
                             for(Entity entity : player.getNearbyEntities(6, 2, 6)) {
                                 Damageable toDamage = canDamage(entity);
@@ -110,7 +111,57 @@ public enum RisenAbility implements Listener {
                     }
                 }.runTaskTimer(RisenMain.getInstance(), 0, 1);
             }, 20);
+        }
+    },
 
+    REJUVENATE("Rejuvenate", "Hold down this ability to hone your focus in such a way that, if you are left undisturbed for 8 seconds, you completely regain all of your health.", Material.POTION, 45, true){
+        final HashMap<UUID, BukkitRunnable> rejMap = new HashMap<>();
+        @Override
+        protected void activationInternal(Player player){
+            float[] count = {0};
+            float walkSpeed = player.getWalkSpeed();
+            float flySpeed = player.getFlySpeed();
+            float[] tone = {1};
+            Bukkit.getServer().broadcastMessage(ChatColor.YELLOW + player.getName() + " is rejuvenating!");
+            BukkitRunnable rejRunnable = new BukkitRunnable() {
+                public void run() {
+                    if(count[0] < 8) {
+                        player.playSound(player.getLocation(), Sound.NOTE_STICKS, 10, tone[0]);
+                        tone[0] = tone[0] + 0.01f;
+                        count[0] = count[0] + 0.05f;
+                        player.setFlySpeed(player.getFlySpeed() - 0.0001f);
+                        player.setWalkSpeed(player.getWalkSpeed() - 0.0001f);
+                        ActionBarUtils.sendActionBar(player, ChatColor.GOLD + ChatColor.BOLD.toString() + "Rejuvinating... " + ChatColor.GOLD.toString() + count[0] + ChatColor.GRAY + " | " + ChatColor.RED + ChatColor.UNDERLINE + "Don't switch items!");
+                    }else{
+                        player.setWalkSpeed(walkSpeed);
+                        player.setFlySpeed(flySpeed);
+                        player.setHealth(player.getMaxHealth());
+                        player.playSound(player.getLocation(), Sound.NOTE_PLING, 10, 1);
+                        ParticleEffect.SPELL_INSTANT.display(0, 0, 0, 1, 10, player.getLocation(), 15);
+                    }
+                }
+                public void cancel(){
+                    super.cancel();
+                    ActionBarUtils.sendActionBar(player, ChatColor.RED + "Rejuvenation CANCELLED!");
+                    player.playSound(player.getLocation(), Sound.NOTE_BASS, 10, 1);
+                }
+            };
+            rejRunnable.runTaskTimer(RisenMain.getInstance(), 0, 1);
+            rejMap.put(player.getUniqueId(), rejRunnable);
+        }
+
+        @EventHandler
+        public void hotbarSwitchCancel(PlayerItemHeldEvent event){
+            cancelRejuvenation(event.getPlayer());
+        }
+        @EventHandler
+        public void damageCancel(EntityDamageByEntityEvent event){
+            Entity entity = event.getEntity();
+            if(entity instanceof Player) cancelRejuvenation((Player) entity);
+        }
+        private void cancelRejuvenation(Player player){
+            BukkitRunnable rejRunnable = rejMap.remove(player.getUniqueId());
+            if(rejRunnable != null) rejRunnable.cancel();
         }
     };
 

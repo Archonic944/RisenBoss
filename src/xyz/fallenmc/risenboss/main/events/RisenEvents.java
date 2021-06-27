@@ -21,9 +21,12 @@ import xyz.fallenmc.risenboss.main.abilities.Ability;
 import xyz.fallenmc.risenboss.main.utils.BossBarUtil;
 import xyz.fallenmc.risenboss.main.utils.RisenUtils;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 public class RisenEvents implements Listener {
+    private final HashMap<UUID, Integer> rejuvenateMap = new HashMap<>();
+
     private boolean isBoss(UUID uuid) {
         if (RisenMain.currentBoss == null) return false;
         else return RisenMain.currentBoss.getUUID().equals(uuid);
@@ -38,16 +41,18 @@ public class RisenEvents implements Listener {
     @EventHandler
     public void cancelBossDrop(PlayerDropItemEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        if (isBoss(uuid)) event.setCancelled(true);
+        if(isBoss(uuid)) event.setCancelled(true);
     }
 
     @EventHandler
     public void useAbility(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (isBoss(player.getUniqueId())) {
+        if(isBoss(player.getUniqueId())){
             String id = NBTUtil.getCustomAttr(player.getItemInHand(), "ID");
             Ability ability = RisenMain.currentBoss.abilityInstances.get(id);
-            if (ability != null) ability.activate(RisenMain.currentBoss);
+            if(ability != null){
+                ability.activate(RisenMain.currentBoss);
+            }
         }
     }
 

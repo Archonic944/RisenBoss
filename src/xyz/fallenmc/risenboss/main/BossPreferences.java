@@ -10,4 +10,5 @@ public class BossPreferences {
         Set<RisenAbility> clearDuplicates = new HashSet<>(Arrays.asList(enabled));
         enabledAbilities.addAll(clearDuplicates);
     }
+
 }
