@@ -19,26 +19,6 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/Desktop/Server/spigot.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/Desktop/Server/spigot.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/npclib-plugin-2.10-SNAPSHOT.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/Server/plugins/item-nbt-api-plugin-2.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -48,7 +28,44 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/Server/spigot.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$USER_HOME$/Desktop/Server/spigot.jar!/" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Bukkit/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Bukkit/src/main/javadoc" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Bukkit/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/CraftBukkit/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/CraftBukkit/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-API/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-API/src/main/javadoc" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-API/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-Server/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-Server/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/main/javadoc" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-Server/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-Server/src/test/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/Server/plugins/MainPlugin.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../FallenMC-master/src" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/Server/plugins/NPCLib.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -15,14 +15,14 @@ public class Ability {
     public Ability(RisenAbility ability){
         this.ability = ability;
     }
-    
     public void activate(RisenBoss boss){
         Player player = boss.getPlayer();
         if(!cd){
-            ability.activationInternal(player);
-            cooldown(player);
-            if(!ability.equals(RisenAbility.REJUVENATE))
-                Bukkit.getServer().broadcastMessage(boss.rankColor + player.getName() + ChatColor.YELLOW + " used " + ChatColor.GOLD + ability.name + ChatColor.YELLOW + "!");
+            if(ability.activationInternal(boss)) {
+                if(!ability.equals(RisenAbility.REJUVENATE) && !ability.equals(RisenAbility.DUMMY))
+                    Bukkit.getServer().broadcastMessage(boss.rankColor + player.getName() + ChatColor.YELLOW + " used " + ChatColor.GOLD + ability.name + ChatColor.YELLOW + "!");
+                cooldown(player);
+            }else player.playSound(player.getLocation(), Sound.NOTE_BASS, 10, 1);
         }else player.sendMessage(ChatColor.RED + "This ability is on cooldown for " + cdLeft + " more seconds!");
     }
 

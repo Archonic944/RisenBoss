@@ -4,9 +4,13 @@ import net.jitse.npclib.NPCLib;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import xyz.fallenmc.risenboss.main.commands.RisenCommands;
 import xyz.fallenmc.risenboss.main.events.RisenEvents;
 import xyz.fallenmc.risenboss.main.utils.BossBarUtil;
+
+import java.util.Set;
+import java.util.UUID;
 
 public class RisenMain extends JavaPlugin {
     private static RisenMain instance;
@@ -24,20 +28,12 @@ public class RisenMain extends JavaPlugin {
         RisenCommands commands = new RisenCommands();
         getCommand("rise").setExecutor(commands);
         Bukkit.getPluginManager().registerEvents(new RisenEvents(), this);
-
-        new Thread(() -> {
-            while(true) {
-                for(String s : BossBarUtil.getPlayers()) {
-                    Player o = Bukkit.getPlayer(s);
-                    if(o != null) BossBarUtil.teleportBar(o);
-                }
-
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            Set<UUID> bossBars = BossBarUtil.getPlayers();
+            for(UUID uuid : bossBars) {
+                Player o = Bukkit.getPlayer(uuid);
+                if(o != null) BossBarUtil.teleportBar(o);
             }
-        }).start();
+        }, 20, 20);
     }
 }

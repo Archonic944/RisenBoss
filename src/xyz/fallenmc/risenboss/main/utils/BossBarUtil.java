@@ -102,5 +102,4 @@ public class BossBarUtil {
             removeBar(player);
         }
     }
-
 }

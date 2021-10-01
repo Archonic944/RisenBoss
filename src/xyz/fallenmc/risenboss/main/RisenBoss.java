@@ -11,6 +11,7 @@ import me.zach.DesertMC.Utils.StringUtils.StringUtil;
 import net.jitse.npclib.api.NPC;
 import net.jitse.npclib.api.skin.Skin;
 import net.jitse.npclib.api.state.NPCSlot;
+
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
@@ -24,27 +25,31 @@ import xyz.fallenmc.risenboss.main.abilities.Ability;
 import xyz.fallenmc.risenboss.main.abilities.RisenAbility;
 import xyz.fallenmc.risenboss.main.utils.BossBarUtil;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.UUID;
 
 
 public final class RisenBoss {
     public final HashMap<String, Ability> abilityInstances = new HashMap<>();
     public final String rankColor;
-    HashMap<UUID, Double> damagers = new HashMap<>();
+    public final HashMap<UUID, Double> damagers = new HashMap<>();
     public RisenBoss(Player player, BossPreferences abilities){
+        uuid = player.getUniqueId();
+        name = player.getName();
         RisenMain.currentBoss = this;
         //saving inventory
         prevPlayerInventory = player.getInventory().getContents();
         Plugin fallenMain = Bukkit.getPluginManager().getPlugin("Fallen");
-        uuid = player.getUniqueId();
         //setting rankColor for quick access
         if(RankEvents.rankSession.containsKey(uuid)) rankColor = RankEvents.rankSession.get(uuid).c.toString();
         else rankColor = "§7";
         //preparing dummy player npc for the wizard class's "Dummy!" ability
-        dummyPlayer = RisenMain.getNpcLib().createNPC(Collections.singletonList(rankColor + player.getName()));
+        dummyPlayer = RisenMain.getNpcLib().createNPC(Collections.singletonList(rankColor + name));
         //getting skin signature and id from the player
-        EntityPlayer NMSplayer = ((CraftPlayer) player).getHandle();
-        GameProfile profile = NMSplayer.getProfile();
+        EntityPlayer NMSPlayer = ((CraftPlayer) player).getHandle();
+        GameProfile profile = NMSPlayer.getProfile();
         Property property = profile.getProperties().get("textures").iterator().next();
         String value = property.getValue();
         String signature = property.getSignature();
@@ -57,14 +62,10 @@ public final class RisenBoss {
         dummyPlayer.setItem(NPCSlot.HELMET, playerInventory.getHelmet());
         //replacing inventory
         playerInventory.clear();
-        playerInventory.setItem(27, Items.getRisenBlade());
-        int j = 0;
-        for(int i = 29; i < 36; i++){
-            if(j < abilities.enabledAbilities.size()){
-                RisenAbility ability = abilities.enabledAbilities.get(j);
-                playerInventory.setItem(i, ability.hotbarItem);
-                j++;
-            }else break;
+        playerInventory.setItem(0, Items.getRisenBlade());
+        for(int i = 2, j = 0; i < 9 && j < abilities.enabledAbilities.size(); i++, j++){
+            RisenAbility ability = abilities.enabledAbilities.get(j);
+            playerInventory.setItem(i, ability.hotbarItem);
         }
         //preparing ability instances map
         for(RisenAbility risenAbility : abilities.enabledAbilities){
@@ -76,14 +77,14 @@ public final class RisenBoss {
         Bukkit.broadcastMessage(rankColor + name + " " + ChatColor.GOLD + "just because a RISEN BOSS! Fight them to gain rewards!");
         //setting max health
         player.setMaxHealth(player.getMaxHealth() + 16);
+        player.setHealth(player.getMaxHealth());
         //initializing timers and other things
         initRunnables();
     }
 
 
-
-    public final String name = getPlayer().getName();
-    private final NPC dummyPlayer;
+    public final String name;
+    public final NPC dummyPlayer;
     private int damageTaken = 0;
     private static final int secondsToReach = 600;
     private int secondsLeft = secondsToReach;
@@ -129,10 +130,10 @@ public final class RisenBoss {
         }
     }
 
-    public void bossHit(double damage){
+    public void bossAttack(double damage){
         damageDealt += damage;
         Player player = getPlayer();
-        float healthFloat = (float) (player.getHealth() / player.getMaxHealth());
+        float healthFloat = (float) (player.getMaxHealth() / player.getHealth());
         for(UUID uuid : BossBarUtil.getPlayers()){
             BossBarUtil.updateHealth(Bukkit.getPlayer(uuid), healthFloat);
         }
@@ -141,10 +142,8 @@ public final class RisenBoss {
 
     private void initRunnables(){
         Player player = getPlayer();
-        Location location = player.getLocation();
-        flamesInit(location);
         timerInit(player);
-        calloutInit(location, rankColor + player.getName());
+        calloutInit(rankColor + player.getName());
     }
 
     public void endBoss(EndReason reason){
@@ -152,14 +151,17 @@ public final class RisenBoss {
         dummyPlayer.destroy();
         timer.cancel();
         callout.cancel();
-        BossBarUtil.clearAllBars();
         Player player = getPlayer();
+        for(Player p : Bukkit.getOnlinePlayers())
+            if(!p.canSee(player)) p.showPlayer(player);
+        BossBarUtil.clearAllBars();
         player.getInventory().setContents(prevPlayerInventory);
         if(reason.won){
-            //TODO do this gabriel!
+            //TODO do this gabe!
             StringUtil.sendCenteredWrappedMessage(player, new StringUtil.ChatWrapper('*', ChatColor.GREEN, true, false), ChatColor.GREEN + "YOU WIN!");
 
         }
+        RisenMain.currentBoss = null;
     }
 
     private void timerInit(Player player){
@@ -184,20 +186,21 @@ public final class RisenBoss {
         }.runTaskTimer(RisenMain.getInstance(), 20, 20);
     }
 
-    private void flamesInit(Location location){
+    private void flamesInit(){
         fallenFlames = Bukkit.getScheduler().runTaskTimer(RisenMain.getInstance(), () -> {
-            float xOffset = (float) Math.random() * 2;
-            float yOffset = (float) Math.random() * 2;
-            float zOffset = (float) Math.random() * 2;
-            Location auraLocation = location.clone().add(xOffset, yOffset, zOffset);
-            ParticleEffect.FLAME.display(-xOffset, -yOffset, -zOffset, 1.4f, 1, auraLocation, 75);
+            float xOffset = (float) MiscUtils.trueRandom();
+            float yOffset = (float) MiscUtils.trueRandom();
+            float zOffset = (float) MiscUtils.trueRandom();
+            Location auraLocation = getPlayer().getLocation().clone().add(xOffset, yOffset, zOffset);
+            ParticleEffect.FLAME.display(-xOffset, -yOffset,        -zOffset, 0.8f, 1, auraLocation, 75);
         }, 0, 7);
     }
 
-    private void calloutInit(Location location, String playerName){
+    private void calloutInit(String playerName){
         callout = Bukkit.getScheduler().runTaskTimer(RisenMain.getInstance(), () -> {
-            Bukkit.getServer().broadcastMessage(playerName + ChatColor.GRAY + " is at " + ChatColor.YELLOW + "(" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")" + ChatColor.YELLOW + "!" + ChatColor.GRAY + " Come and get them!");
-            MiscUtils.spawnFirework(location, 5, false, true, FireworkEffect.Type.BURST, Color.YELLOW);
+            Location location = getPlayer().getLocation();
+            Bukkit.getServer().broadcastMessage(playerName + ChatColor.GRAY + " is at " + ChatColor.YELLOW + "(" + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ")" + ChatColor.YELLOW + "!" + ChatColor.GRAY + " Come and get them!");
+            MiscUtils.spawnFirework(location, 3, false, true, FireworkEffect.Type.BURST, Color.YELLOW);
         }, 800, 800);
     }
 

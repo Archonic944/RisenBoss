@@ -2,7 +2,7 @@ name: RisenBoss
 description: A supporting plugin for the FallenMC minecraft server that adds the risen boss.
 version: 1.0
 author: FallenMC team
-main: RisenMain
+main: xyz.fallenmc.risenboss.main.RisenMain
 depend:
   - Fallen
 
