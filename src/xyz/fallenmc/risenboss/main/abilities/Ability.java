@@ -1,6 +1,7 @@
 package xyz.fallenmc.risenboss.main.abilities;
 
 import me.zach.DesertMC.Utils.ActionBar.ActionBarUtils;
+import me.zach.DesertMC.Utils.Config.ConfigUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -9,16 +10,17 @@ import org.bukkit.scheduler.BukkitRunnable;
 import xyz.fallenmc.risenboss.main.RisenBoss;
 import xyz.fallenmc.risenboss.main.RisenMain;
 
-public class Ability {
 
+public class Ability {
     public RisenAbility ability;
     public Ability(RisenAbility ability){
         this.ability = ability;
     }
+
     public void activate(RisenBoss boss){
         Player player = boss.getPlayer();
         if(!cd){
-            if(ability.activationInternal(boss)) {
+            if(ability.activationInternal(ConfigUtils.findClass(boss.getUUID()).equals(ability.multiClass), boss)) {
                 if(!ability.equals(RisenAbility.REJUVENATE) && !ability.equals(RisenAbility.DUMMY))
                     Bukkit.getServer().broadcastMessage(boss.rankColor + player.getName() + ChatColor.YELLOW + " used " + ChatColor.GOLD + ability.name + ChatColor.YELLOW + "!");
                 cooldown(player);

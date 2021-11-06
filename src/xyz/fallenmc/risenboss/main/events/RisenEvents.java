@@ -1,8 +1,10 @@
 package xyz.fallenmc.risenboss.main.events;
 
+import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.DesertMC.Utils.nbt.NBTUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,9 +14,13 @@ import org.bukkit.event.player.*;
 import xyz.fallenmc.risenboss.main.RisenBoss;
 import xyz.fallenmc.risenboss.main.RisenMain;
 import xyz.fallenmc.risenboss.main.abilities.Ability;
+import xyz.fallenmc.risenboss.main.abilities.RisenAbility;
+import xyz.fallenmc.risenboss.main.inventories.AbilitySelectInventory;
 import xyz.fallenmc.risenboss.main.utils.BossBarUtil;
 import xyz.fallenmc.risenboss.main.utils.RisenUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -36,7 +42,10 @@ public class RisenEvents implements Listener {
     @EventHandler
     public void bossQuit(PlayerQuitEvent event){
         UUID uuid = event.getPlayer().getUniqueId();
-        if(RisenUtils.isBoss(uuid)) RisenMain.currentBoss.endBoss(RisenBoss.EndReason.BOSS_QUIT);
+        if(RisenUtils.isBoss(uuid)){
+            RisenMain.currentBoss.endBoss(RisenBoss.EndReason.BOSS_QUIT);
+            System.out.println("RisenMain.currentBoss = " + RisenMain.currentBoss);
+        }
     }
 
     @EventHandler
@@ -85,5 +94,17 @@ public class RisenEvents implements Listener {
     @EventHandler
     public void cancelAbilityPlace(BlockPlaceEvent event){
         if(NBTUtil.hasCustomKey(event.getItemInHand(), "ABILITY")) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void setConfigValues(PlayerJoinEvent event){
+        UUID uuid = event.getPlayer().getUniqueId();
+        RisenMain main = RisenMain.getInstance();
+        YamlConfiguration config = (YamlConfiguration) main.getConfig();
+        MiscUtils.ensureDefault("players." + uuid + ".boss.ready", false, config);
+        MiscUtils.ensureDefault("players." + uuid + ".boss.tonextslot", AbilitySelectInventory.WINS_PER_ABILITY_SLOT, config);
+        MiscUtils.ensureDefault("players." + uuid + ".boss.abilityslots", AbilitySelectInventory.MINIMUM_ABILITY_SLOTS, config);
+        MiscUtils.ensureDefault("players." + uuid + ".boss.selected", RisenAbility.START_ABILITIES, config);
+        main.saveConfig();
     }
 }

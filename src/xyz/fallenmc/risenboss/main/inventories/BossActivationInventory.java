@@ -1,4 +1,4 @@
-package xyz.fallenmc.risenboss.main;
+package xyz.fallenmc.risenboss.main.inventories;
 
 import de.tr7zw.nbtapi.NBTItem;
 import me.zach.DesertMC.Utils.Config.ConfigUtils;
@@ -10,6 +10,7 @@ import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -18,6 +19,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import xyz.fallenmc.risenboss.main.RisenBoss;
+import xyz.fallenmc.risenboss.main.RisenMain;
 import xyz.fallenmc.risenboss.main.utils.RisenUtils;
 
 import java.util.Arrays;
@@ -27,6 +30,8 @@ import java.util.function.IntPredicate;
 public class BossActivationInventory implements GUIHolder {
     private final int[][] borders = new int[3][];
     private final ItemStack[] borderPanes = new ItemStack[]{MiscUtils.generateItem(Material.STAINED_GLASS_PANE, " ", Collections.emptyList(), (byte) 2, 1), MiscUtils.generateItem(Material.STAINED_GLASS_PANE, " ", Collections.emptyList(), (byte) 5, 1), MiscUtils.generateItem(Material.STAINED_GLASS_PANE, " ", Collections.emptyList(), (byte) 3, 1)};
+    private final ItemStack selectAbilities = MiscUtils.generateItem(Material.POTION, ChatColor.YELLOW + "Select Risen Abilities", Collections.emptyList(), (byte) -1, 1);
+
     BukkitRunnable animation = new BukkitRunnable(){
         public void run(){
             ItemStack replaced = borderPanes[0];
@@ -54,6 +59,7 @@ public class BossActivationInventory implements GUIHolder {
         coreNBT.addCompound("CustomAttributes").setString("ID", "RISEN_ACTIVATOR");
         risenCore = coreNBT.getItem();
         inventory.setItem(Math.floorDiv(inventory.getSize(), 2) + 4, risenCore);
+        inventory.setItem(selectAbilitiesSlot, selectAbilities);
         //calculating animation borders
         for(int i = 0; i<borders.length; i++){
             //resolving corners (ymin isn't necessary since it's always equal to xmin)
@@ -94,15 +100,14 @@ public class BossActivationInventory implements GUIHolder {
     public static final GUIHolder notReadyHolder = new GUIHolder(){
         public void inventoryClick(Player player, int slot, ItemStack clickedItem, ClickType clickType, InventoryClickEvent event){
             event.setCancelled(true);
-            if(slot == 28) player.playSound(player.getLocation(), Sound.NOTE_BASS, 10, 1.1f);
+            if(slot == Math.floorDiv(NOT_READY.getSize(), 2) + 4) player.playSound(player.getLocation(), Sound.NOTE_BASS, 10, 1.1f);
         }
 
         public Inventory getInventory(){
             return NOT_READY;
         }
     };
-    public static final Inventory NOT_READY = Bukkit.getServer().createInventory(notReadyHolder, 54, "Activate Risen Boss");
-
+    public static final Inventory NOT_READY = Bukkit.getServer().createInventory(notReadyHolder, 45, "Activate Risen Boss");
     static{
         //filling the NOT_READY inventory
         ItemStack empty = MiscUtils.generateItem(Material.STAINED_GLASS_PANE, " ", Collections.emptyList(), (byte) 15,1);
@@ -112,10 +117,11 @@ public class BossActivationInventory implements GUIHolder {
                 StringUtil.wrapLore(ChatColor.YELLOW + "\nThis Risen Core will illuminate after you reach a 50 killstreak with Risen Armor. Once it's activated, come back here to turn into a Risen Boss!"),
                 (byte) 8,
                 1);
-        NOT_READY.setItem(28, notReadyItem);
+        NOT_READY.setItem(Math.floorDiv(NOT_READY.getSize(), 2) + 4, notReadyItem);
     }
 
     Inventory inventory = Bukkit.getServer().createInventory(this, 54, "Activate Risen Boss");
+    private final int selectAbilitiesSlot = Math.floorDiv(inventory.getSize(), 2) + 3;
     IntPredicate borderFilter = value -> value > -1 && value < inventory.getSize();
 
     public void inventoryOpen(Player player, Inventory inventory, InventoryOpenEvent event){
@@ -129,7 +135,7 @@ public class BossActivationInventory implements GUIHolder {
     public void inventoryClick(Player player, int i, ItemStack item, ClickType clickType, InventoryClickEvent event){
         event.setCancelled(true);
         String id = NBTUtil.getCustomAttrString(item, "ID");
-        if (id.equals("RISEN_ACTIVATOR")) {
+        if(id.equals("RISEN_ACTIVATOR")) {
             player.closeInventory();
             if(RisenUtils.bossIsReady(player)){
                 if(RisenMain.currentBoss == null){
@@ -159,6 +165,9 @@ public class BossActivationInventory implements GUIHolder {
                     player.sendMessage(ChatColor.RED + "Sorry, you can't become a Risen Boss while one is already active.");
                 }
             }
+        }else if(i == selectAbilitiesSlot){
+            System.out.println("select abilities");
+            player.openInventory(new AbilitySelectInventory(player).getInventory());
         }
     }
 

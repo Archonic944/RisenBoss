@@ -56,10 +56,12 @@ public final class RisenBoss {
         dummyPlayer.setSkin(new Skin(value, signature));
         //setting slots on the npc to match the player's armor (as well as getting the players inventory)
         PlayerInventory playerInventory = player.getInventory();
-        dummyPlayer.setItem(NPCSlot.BOOTS, playerInventory.getBoots());
-        dummyPlayer.setItem(NPCSlot.LEGGINGS, playerInventory.getLeggings());
-        dummyPlayer.setItem(NPCSlot.CHESTPLATE, playerInventory.getChestplate());
-        dummyPlayer.setItem(NPCSlot.HELMET, playerInventory.getHelmet());
+        if(playerInventory.getBoots() != null) dummyPlayer.setItem(NPCSlot.BOOTS, playerInventory.getBoots());
+        if(playerInventory.getLeggings() != null) dummyPlayer.setItem(NPCSlot.LEGGINGS, playerInventory.getLeggings());
+        if(playerInventory.getChestplate() != null) dummyPlayer.setItem(NPCSlot.CHESTPLATE, playerInventory.getChestplate());
+        if(playerInventory.getHelmet() != null) dummyPlayer.setItem(NPCSlot.HELMET, playerInventory.getHelmet());
+        dummyPlayer.setLocation(player.getLocation());
+        dummyPlayer.create();
         //replacing inventory
         playerInventory.clear();
         playerInventory.setItem(0, Items.getRisenBlade());
@@ -147,7 +149,6 @@ public final class RisenBoss {
     }
 
     public void endBoss(EndReason reason){
-        fallenFlames.cancel();
         dummyPlayer.destroy();
         timer.cancel();
         callout.cancel();

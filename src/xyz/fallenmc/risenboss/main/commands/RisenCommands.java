@@ -1,6 +1,5 @@
 package xyz.fallenmc.risenboss.main.commands;
 
-import me.zach.DesertMC.Utils.debug.InfoDumper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -8,11 +7,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import xyz.fallenmc.risenboss.main.BossActivationInventory;
 import xyz.fallenmc.risenboss.main.utils.RisenUtils;
 
-
 public class RisenCommands implements CommandExecutor {
+
     private static final String dashWrap = ChatColor.GREEN.toString() + ChatColor.BOLD + ChatColor.STRIKETHROUGH + "-----------------------------------------";
     private static final String halfDashWrap = dashWrap.substring(0, dashWrap.length() / 2 - 4);
     @Override
