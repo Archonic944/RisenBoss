@@ -8,5 +8,8 @@ depend:
 
 commands:
   rise:
-    description: Closed-circuit command mainly used for the FallenMC core plugin to activate the risen boss for a certain player. Can also be used by server admins.
+    description: Command mainly used to activate the risen boss for a certain player. Can only be used by server admins.
     usage: /<command> <player>
+  endboss:
+    description: Ends the current Risen Boss with the reason as an unknown win or loss. Can only be used by server admins.
+    usage: /<command> <win|loss>

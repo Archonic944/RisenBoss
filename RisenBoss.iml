@@ -48,6 +48,15 @@
           <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/test/java" />
           <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-Server/src/main/java" />
           <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-Server/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Bukkit/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Bukkit/src/main/javadoc" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Bukkit/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/CraftBukkit/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/CraftBukkit/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-API/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-API/src/test/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-Server/src/main/java" />
+          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-Server/src/test/java" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -55,6 +64,24 @@
       <library>
         <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/Server/plugins/NPCLib.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/Server/plugins/Artifacts.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/Server/plugins/DataBank.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

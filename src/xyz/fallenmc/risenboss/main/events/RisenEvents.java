@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.player.*;
 import xyz.fallenmc.risenboss.main.RisenBoss;
 import xyz.fallenmc.risenboss.main.RisenMain;
@@ -79,6 +80,11 @@ public class RisenEvents implements Listener {
     }
 
     @EventHandler
+    public void cancelAbilityPotionThrow(PotionSplashEvent event){
+        if(NBTUtil.hasCustomKey(event.getPotion().getItem(), "ABILITY")) event.setCancelled(true);
+    }
+
+    @EventHandler
     public void bossHit(EntityDamageByEntityEvent event){
         if(RisenMain.currentBoss != null){
             UUID entityUUID = event.getEntity().getUniqueId();
@@ -97,14 +103,8 @@ public class RisenEvents implements Listener {
     }
 
     @EventHandler
-    public void setConfigValues(PlayerJoinEvent event){
+    public void setBossSaveValues(PlayerJoinEvent event){
         UUID uuid = event.getPlayer().getUniqueId();
-        RisenMain main = RisenMain.getInstance();
-        YamlConfiguration config = (YamlConfiguration) main.getConfig();
-        MiscUtils.ensureDefault("players." + uuid + ".boss.ready", false, config);
-        MiscUtils.ensureDefault("players." + uuid + ".boss.tonextslot", AbilitySelectInventory.WINS_PER_ABILITY_SLOT, config);
-        MiscUtils.ensureDefault("players." + uuid + ".boss.abilityslots", AbilitySelectInventory.MINIMUM_ABILITY_SLOTS, config);
-        MiscUtils.ensureDefault("players." + uuid + ".boss.selected", RisenAbility.START_ABILITIES, config);
-        main.saveConfig();
+        //TODO ensure boss save values
     }
 }

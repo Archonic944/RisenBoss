@@ -1,60 +1,42 @@
 package xyz.fallenmc.risenboss.main.utils;
 
-import me.zach.DesertMC.DesertMain;
+import me.zach.DesertMC.Utils.Config.ConfigUtils;
 import me.zach.DesertMC.Utils.reflection.ReflectionUtils;
 import me.zach.DesertMC.Utils.structs.Pair;
 import net.jitse.npclib.api.NPC;
 import net.jitse.npclib.internal.NPCBase;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityTeleport;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import xyz.fallenmc.risenboss.main.data.RisenData;
 import xyz.fallenmc.risenboss.main.inventories.BossActivationInventory;
-import xyz.fallenmc.risenboss.main.BossPreferences;
 import xyz.fallenmc.risenboss.main.RisenMain;
 import xyz.fallenmc.risenboss.main.abilities.RisenAbility;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class RisenUtils {
-    public static BossPreferences getPreferences(Player player){
-        List<String> abilityNames = RisenMain.getInstance().getConfig().getStringList("players." + player.getUniqueId() + ".boss.selected");
-        RisenAbility[] abilities = new RisenAbility[abilityNames.size()];
-        for(int i = 0; i<abilities.length; i++) abilities[i] = RisenAbility.valueOf(abilityNames.get(i));
-        return new BossPreferences(abilities);
-    }
+    private static final String dashWrap = ChatColor.GREEN.toString() + ChatColor.BOLD + ChatColor.STRIKETHROUGH + "-----------------------------------------";
+    private static final String halfDashWrap = dashWrap.substring(0, dashWrap.length() / 2 - 4);
+    public static final int MINIMUM_ABILITY_SLOTS = 3;
+    public static final int WINS_PER_ABILITY_SLOT = 15;
+    public static final int MAX_ABILITY_SLOTS = 6;
 
-    public static void setPreferences(BossPreferences preferences, Player player){
-        RisenAbility[] abilities = new RisenAbility[preferences.enabledAbilities.size()];
-        List<String> abilityNames = new ArrayList<>();
-        for(int i = 0; i<abilities.length; i++) abilityNames.add(abilities[i].name());
-        RisenMain.getInstance().getConfig().set("players." + player.getUniqueId() + ".boss.selected", abilityNames);
+    public static List<RisenAbility> getPreferences(Player player){
+        return new ArrayList<>();
     }
 
     public static void openBossActivationInventory(Player player){
         Inventory inv;
-        if(bossIsReady(player)){
-            inv = BossActivationInventory.READY.getInventory();
-        }else inv = BossActivationInventory.NOT_READY;
+        if(getData(player).isBossReady()){
+            inv = new BossActivationInventory(player).getInventory();
+        }else inv = BossActivationInventory.getNotReady();
         player.openInventory(inv);
-    }
-
-    public static boolean bossIsReady(Player player){
-        RisenMain main = RisenMain.getInstance();
-        boolean ready = main.getConfig().getBoolean("players." + player.getUniqueId() + ".boss.ready");
-        return ready;
-    }
-
-    public static void setBossReady(Player player, boolean ready){
-        RisenMain main = RisenMain.getInstance();
-        main.getConfig().set("players." + player.getUniqueId() + ".boss.ready", ready);
-        main.saveConfig();
     }
 
     public static boolean isBoss(UUID uuid) {
@@ -89,25 +71,17 @@ public class RisenUtils {
         }
     }
 
-    public static void setWinsToNextAbilitySlot(Player player, int wins){
-        RisenMain main = RisenMain.getInstance();
-        main.getConfig().set("players." + player.getUniqueId() + ".boss.tonextslot", wins);
-        main.saveConfig();
+    public static void activateBossReady(Player player){
+        RisenUtils.getData(player).setBossReady(true);
+        player.sendMessage(halfDashWrap + ChatColor.GREEN + ChatColor.BOLD + "↑PREPARE TO RISE↑" + halfDashWrap +
+                ChatColor.DARK_GREEN + "\n   Congrats! You hit a 50 streak with Fallen Armor, so now you get to become a RISEN BOSS! To activate it, retrieve your Fallen Core from the Wongo the Wither, and right click it to activate it!\n"
+                + dashWrap + "-");
+        player.playSound(player.getLocation(), Sound.WITHER_SPAWN, 10, 1);
+        RisenMain.alreadyUsed.add(player.getUniqueId());
+        RisenUtils.openBossActivationInventory(player);
     }
 
-    public static int getWinsToNextAbilitySlot(Player player){
-        RisenMain main = RisenMain.getInstance();
-        return main.getConfig().getInt("players." + player.getUniqueId() + ".boss.tonext");
-    }
-
-    public static void setAbilitySlots(Player player, int slots){
-        RisenMain main = RisenMain.getInstance();
-        main.getConfig().set("players." + player.getUniqueId() + ".boss.abilityslots", slots);
-        main.saveConfig();
-    }
-
-    public static int getAbilitySlots(Player player){
-        RisenMain main = RisenMain.getInstance();
-        return main.getConfig().getInt("players." + player.getUniqueId() + ".boss.abilityslots");
+    public static RisenData getData(Player player){
+        return ConfigUtils.getData(player.getUniqueId()).getRisenData();
     }
 }
