@@ -1,85 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="JAVA_MODULE" version="4">
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="minecraft" name="Minecraft">
       <configuration>
         <autoDetectTypes>
-          <platformType>SPIGOT</platformType>
+          <platformType>BUKKIT</platformType>
         </autoDetectTypes>
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="true">
-    <exclude-output />
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+    <output url="file://$MODULE_DIR$/target/classes" />
+    <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: com.github.CobbleSword.NachoSpigot:api:57e8295c68" level="project" />
+    <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.6" level="project" />
+    <orderEntry type="library" name="Maven: com.googlecode.json-simple:json-simple:1.1.1" level="project" />
+    <orderEntry type="library" name="Maven: junit:junit:4.10" level="project" />
+    <orderEntry type="library" name="Maven: org.hamcrest:hamcrest-core:1.1" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:guava:17.0" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.2.4" level="project" />
+    <orderEntry type="library" name="Maven: org.avaje:ebean:2.8.1" level="project" />
+    <orderEntry type="library" name="Maven: javax.persistence:persistence-api:1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.15" level="project" />
+    <orderEntry type="library" name="Maven: net.md-5:bungeecord-chat:1.8-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains:annotations:23.0.0" level="project" />
+    <orderEntry type="library" name="Maven: net.jitse:npclib-api:2.11.1-SNAPSHOT" level="project" />
     <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Desktop/Server/plugins/item-nbt-api-plugin-2.3.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Desktop/Server/spigot.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/Desktop/Server/spigot.jar!/" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Bukkit/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Bukkit/src/main/javadoc" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Bukkit/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/CraftBukkit/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/CraftBukkit/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-API/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-API/src/main/javadoc" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-API/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-Server/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/BuildTools/Spigot/Spigot-Server/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/main/javadoc" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-API/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-Server/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/NachoSpigot/NachoSpigot-Server/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Bukkit/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Bukkit/src/main/javadoc" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Bukkit/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/CraftBukkit/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/CraftBukkit/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-API/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-API/src/test/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-Server/src/main/java" />
-          <root url="file://$USER_HOME$/Downloads/JAR Sources/Spigot/Spigot-Server/src/test/java" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Desktop/Server/plugins/NPCLib.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Desktop/Server/plugins/Artifacts.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
+      <library name="Maven: xyz.fallenmc:Databank:1.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/Server/plugins/DataBank.jar!/" />
         </CLASSES>
@@ -88,7 +43,16 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library>
+      <library name="Maven: xyz.fallenmc:Artifacts:1.0">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/Server/plugins/Artifacts.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Maven: xyz.fallenmc:MainPlugin:1.0">
         <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/Server/plugins/MainPlugin.jar!/" />
         </CLASSES>
@@ -96,5 +60,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: de.tr7zw:item-nbt-api-plugin:2.6.0" level="project" />
+    <orderEntry type="library" name="Maven: org.inventivetalent:bossbarapi:2.4.3-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.bukkit:bukkit:1.12.2-R0.1-SNAPSHOT" level="project" />
   </component>
 </module>
