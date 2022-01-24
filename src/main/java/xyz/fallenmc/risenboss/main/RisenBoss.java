@@ -60,8 +60,7 @@ public final class RisenBoss implements Listener {
         prevPlayerInventory = player.getInventory().getContents();
         Plugin fallenMain = DesertMain.getInstance;
         //setting rankColor for quick access
-        if(RankEvents.rankSession.containsKey(uuid)) rankColor = RankEvents.rankSession.get(uuid).c.toString();
-        else rankColor = "§7";
+        rankColor = MiscUtils.getRankColor(uuid);
         //preparing dummy player npc for the wizard class's "Dummy!" ability
         dummyPlayer = RisenMain.getNpcLib().createNPC(Collections.singletonList(rankColor + name));
         //getting skin signature and id from the player

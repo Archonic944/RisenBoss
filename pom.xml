@@ -47,6 +47,13 @@
         </dependency>
         <dependency>
             <groupId>xyz.fallenmc</groupId>
+            <artifactId>FallenItems</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${user.home}/Desktop/Server/plugins/FallenItems.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>xyz.fallenmc</groupId>
             <artifactId>Databank</artifactId>
             <version>1.0</version>
             <scope>system</scope>

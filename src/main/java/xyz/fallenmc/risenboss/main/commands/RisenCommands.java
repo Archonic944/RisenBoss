@@ -17,7 +17,7 @@ public class RisenCommands implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String alias, String[] args){
         if(command.getName().equalsIgnoreCase("rise")){
-            if(commandSender.hasPermission("admin")){
+            if((commandSender instanceof Player && MiscUtils.isAdmin((Player) commandSender)) || commandSender.hasPermission("admin")){
                 Player target;
                 if(args.length >= 1) target = Bukkit.getPlayer(args[0]);
                 else if(commandSender instanceof Player) target = (Player) commandSender;
@@ -29,7 +29,7 @@ public class RisenCommands implements CommandExecutor {
                 }
             }
         }else if(command.getName().equalsIgnoreCase("endboss")){
-            if(commandSender.hasPermission("admin") && args.length > 0){
+            if((commandSender instanceof Player && MiscUtils.isAdmin((Player) commandSender)) || commandSender.hasPermission("admin") && args.length > 0){
                 RisenBoss currentBoss = RisenMain.currentBoss;
                 if(currentBoss == null) commandSender.sendMessage(ChatColor.RED + "No risen boss is currently active!");
                 else{
