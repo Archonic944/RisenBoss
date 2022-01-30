@@ -6,7 +6,6 @@ import me.zach.DesertMC.ClassManager.TravellerEvents;
 import me.zach.DesertMC.DesertMain;
 import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.DesertMC.Utils.Particle.ParticleEffect;
-import me.zach.DesertMC.Utils.RankUtils.RankEvents;
 import me.zach.DesertMC.Utils.StringUtils.StringUtil;
 import me.zach.DesertMC.Utils.nbt.NBTUtil;
 import me.zach.DesertMC.Utils.structs.Pair;
@@ -42,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class RisenBoss implements Listener {
     public static final BossBarAPI.Color BAR_COLOR = BossBarAPI.Color.RED;
-
+    public static final int HEALTH_BONUS = 16;
     private final List<BossBar> bars = new ArrayList<>();
     public final HashMap<String, Ability> abilityInstances = new HashMap<>();
     public final String rankColor;
@@ -96,7 +95,7 @@ public final class RisenBoss implements Listener {
         //boss message
         Bukkit.broadcastMessage(rankColor + name + " " + ChatColor.GOLD + "just because a RISEN BOSS! Fight them to gain rewards!");
         //setting max health
-        player.setMaxHealth(player.getMaxHealth() + 16);
+        player.setMaxHealth(player.getMaxHealth() + HEALTH_BONUS);
         player.setHealth(player.getMaxHealth());
         //initializing timers and other things
         initRunnables();
@@ -142,10 +141,13 @@ public final class RisenBoss implements Listener {
     private final UUID uuid;
 
     public void bossDamage(UUID damager, double damage){
-        if(!damager.equals(uuid)){
+        if(!damager.equals(uuid))
             damagers.put(damager, damagers.containsKey(damager) ? damagers.get(damager) + damage : damage);
-            damageTaken += damage;
-        }
+        bossDamage(damage);
+    }
+
+    public void bossDamage(double damage){
+        damageTaken += damage;
         Player player = getPlayer();
         float healthFloat = (float) (player.getHealth() / player.getMaxHealth());
         for(BossBar bar : bars){
@@ -169,6 +171,9 @@ public final class RisenBoss implements Listener {
         timer.cancel();
         callout.cancel();
         Player player = getPlayer();
+        double oldHealth = player.getMaxHealth() - HEALTH_BONUS;
+        player.setHealth(oldHealth);
+        player.setMaxHealth(oldHealth);
         for(Player p : Bukkit.getOnlinePlayers())
             if(!p.canSee(player)) p.showPlayer(player);
         for(BossBar bar : bars){
@@ -429,6 +434,7 @@ public final class RisenBoss implements Listener {
         return damagersPairs;
     }
 
+    @SuppressWarnings("unused")
     public enum EndReason{
         TIMER_FINISHED(true),
         BOSS_VANQUISHED(false),
