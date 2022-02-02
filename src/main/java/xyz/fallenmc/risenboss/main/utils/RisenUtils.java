@@ -73,7 +73,7 @@ public class RisenUtils {
     public static void activateBossReady(Player player){
         RisenUtils.getData(player).setBossReady(true);
         player.sendMessage(halfDashWrap + ChatColor.GREEN + ChatColor.BOLD + "↑PREPARE TO RISE↑" + halfDashWrap +
-                ChatColor.DARK_GREEN + "\n   Congrats! You hit a 50 streak with Fallen Armor, so now you get to become a RISEN BOSS! To activate it, retrieve your Fallen Core from the Wongo the Wither, and right click it to activate it!\n"
+                ChatColor.DARK_GREEN + "\n   Congrats! You hit a 50 streak with Fallen Armor, so now you get to become a RISEN BOSS! To activate it, visit Kothy in the cafe!\n"
                 + dashWrap + "-");
         player.playSound(player.getLocation(), Sound.WITHER_SPAWN, 10, 1);
         RisenMain.alreadyUsed.add(player.getUniqueId());
