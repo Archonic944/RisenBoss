@@ -160,11 +160,10 @@ public class BossActivationInventory implements GUIHolder {
                                 return;
                             }
                         }
-                        RisenBoss boss = new RisenBoss(player);
-                        RisenMain.currentBoss = boss;
+                        RisenMain.currentBoss = new RisenBoss(player);
                         data.setBossReady(false);
                         player.teleport(spawn);
-                        player.getServer().broadcastMessage(ChatColor.RED + ChatColor.BOLD.toString() + "RISEN BOSS " + boss.rankColor + player.getName() + ChatColor.GRAY + " became a risen boss! Fight them to earn rewards!");
+                        player.getServer().broadcastMessage(ChatColor.RED + ChatColor.BOLD.toString() + "RISEN BOSS " + player.getDisplayName() + ChatColor.GRAY + " became a risen boss! Fight them to earn rewards!");
                         StringUtil.sendCenteredWrappedMessage(player,
                                 new StringUtil.ChatWrapper('=', ChatColor.YELLOW, true, false),
                                 ChatColor.GREEN + ChatColor.MAGIC.toString() + "/" + ChatColor.GREEN + ChatColor.BOLD + "YOU HAVE ARISEN" + ChatColor.GREEN + ChatColor.MAGIC + "\\\n",

@@ -3,7 +3,6 @@ package xyz.fallenmc.risenboss.main;
 import de.tr7zw.nbtapi.NBTItem;
 import itempackage.Items;
 import me.zach.DesertMC.ClassManager.TravellerEvents;
-import me.zach.DesertMC.DesertMain;
 import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.DesertMC.Utils.Particle.ParticleEffect;
 import me.zach.DesertMC.Utils.StringUtils.StringUtil;
@@ -22,7 +21,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.inventivetalent.bossbar.BossBar;
@@ -57,7 +55,6 @@ public final class RisenBoss implements Listener {
         name = player.getName();
         //saving inventory
         prevPlayerInventory = player.getInventory().getContents();
-        Plugin fallenMain = DesertMain.getInstance;
         //setting rankColor for quick access
         rankColor = MiscUtils.getRankColor(uuid);
         //preparing dummy player npc for the wizard class's "Dummy!" ability
@@ -92,8 +89,6 @@ public final class RisenBoss implements Listener {
         }
         //temporarily removing from Traveller notifications because of action bar cooldown messages
         removedFromNotifs = TravellerEvents.blockNotifs.remove(uuid);
-        //boss message
-        Bukkit.broadcastMessage(rankColor + name + " " + ChatColor.GOLD + "just because a RISEN BOSS! Fight them to gain rewards!");
         //setting max health
         player.setMaxHealth(player.getMaxHealth() + HEALTH_BONUS);
         player.setHealth(player.getMaxHealth());
@@ -182,22 +177,24 @@ public final class RisenBoss implements Listener {
         bars.clear();
         player.getInventory().setContents(prevPlayerInventory);
         for(ItemStack armor : player.getEquipment().getArmorContents()){
-            NBTItem nbt = new NBTItem(armor);
-            if(NBTUtil.getCustomAttrString(nbt, "ID").startsWith("FALLEN_")){
-                float defense = NBTUtil.getCustomAttrFloat(nbt, "DEFENSE", 0);
-                if(nbt.getFloat("DEFENSE") < 15){
-                    float newDefense = defense + 0.25f;
-                    nbt.getCompound("CustomAttributes").setFloat("DEFENSE", newDefense);
-                    ItemMeta meta = armor.getItemMeta();
-                    List<String> lore = new ArrayList<>(meta.getLore());
-                    for(int i = 0, loreSize = lore.size(); i < loreSize; i++){
-                        String str = lore.get(i);
-                        //this physically hurts me, but I don't have time to make a better item system
-                        if(ChatColor.stripColor(str).startsWith("Current defense bonus:"))
-                            lore.set(i, str.replace(defense + "%", newDefense + "%"));
+            if(armor != null && armor.getType() != Material.AIR){
+                NBTItem nbt = new NBTItem(armor);
+                if(NBTUtil.getCustomAttrString(nbt, "ID").startsWith("FALLEN_")){
+                    float defense = NBTUtil.getCustomAttrFloat(nbt, "DEFENSE", 0);
+                    if(defense < 15){
+                        float newDefense = defense + 0.25f;
+                        NBTUtil.checkCustomAttr(nbt).setFloat("DEFENSE", newDefense);
+                        ItemMeta meta = armor.getItemMeta();
+                        List<String> lore = new ArrayList<>(meta.getLore());
+                        for(int i = 0, loreSize = lore.size(); i < loreSize; i++){
+                            String str = lore.get(i);
+                            //this physically hurts me, but I don't have time to make a better item system
+                            if(ChatColor.stripColor(str).startsWith("Current defense bonus:"))
+                                lore.set(i, str.replace(defense + "%", newDefense + "%"));
+                        }
                     }
-                }
-            }else Bukkit.getLogger().warning("Armor piece for player " + player.getUniqueId() + " not Fallen piece when ending Risen Boss!\nInstead, it was " + armor);
+                }else Bukkit.getLogger().warning("Armor piece for player " + player.getUniqueId() + " not Fallen piece when ending Risen Boss!\nInstead, it was " + armor);
+            }else Bukkit.getLogger().warning("Player " + player.getUniqueId() + " not wearing an armor piece when risen boss ended!");
         }
         String[] message;
         Pair<Player, Double>[] damagersSorted = getDamagersSorted();
@@ -208,11 +205,11 @@ public final class RisenBoss implements Listener {
         if(reason.won){
             String nextSlotMessage = null;
             if(data.getAbilitySlots() < RisenUtils.MAX_ABILITY_SLOTS){
-                nextSlotMessage = AbilitySelectInventory.nextSlotProgress(data.getWinsToNextSlot(), data.getAbilitySlots());
                 data.setWinsToNextSlot(data.getWinsToNextSlot() - 1);
-                if(data.getWinsToNextSlot() == 0){
+                nextSlotMessage = AbilitySelectInventory.nextSlotProgress(data.getWinsToNextSlot(), data.getAbilitySlots());
+                if(data.getWinsToNextSlot() <= 0){
                     data.setAbilitySlots(data.getAbilitySlots() + 1);
-                    nextSlotMessage += " " + ChatColor.BOLD + (data.getAbilitySlots() == RisenUtils.MAX_ABILITY_SLOTS ? "ABILITY SLOTS MAXED!" : "NEW SLOT UNLOCKED");
+                    if(data.getAbilitySlots() == RisenUtils.MAX_ABILITY_SLOTS) nextSlotMessage = ChatColor.AQUA.toString() + ChatColor.BOLD + "ABILITY SLOTS MAXED! " + ChatColor.YELLOW + "(" + RisenUtils.MAX_ABILITY_SLOTS + "/" + RisenUtils.MAX_ABILITY_SLOTS + ")";
                     player.playSound(player.getLocation(), Sound.LEVEL_UP, 10, 1.05f);
                     data.setWinsToNextSlot(RisenUtils.WINS_PER_ABILITY_SLOT);
                 }
@@ -286,12 +283,12 @@ public final class RisenBoss implements Listener {
                 if(damagerSoulsAmount > 0) damagerRewards.add(new BossReward(RewardType.SOULS, damagerSoulsAmount));
                 int damagerEXPAmount = reversePlace * 170 + damageDealt * 10;
                 if(damagerEXPAmount > 0) damagerRewards.add(new BossReward(RewardType.EXP, damagerEXPAmount));
-                damager.sendMessage(endMessage(rewards, damagerPair.second, place + 1, reason.won ? ChatColor.RED : ChatColor.GREEN, "RISEN BOSS LOSES", "You fought well (probably)!", null));
+                damager.sendMessage(endMessage(rewards, damagerPair.second, place + 1, reason.won ? ChatColor.RED : ChatColor.GREEN, reason.won ? "RISEN BOSS WINS" : "RISEN BOSS VANQUISHED", reason.won ? "You fought well (probably)!" : "Spectacular fight!", null));
                 grantAllTo(damagerRewards, damager, RisenUtils.getData(damager));
             }
         }
         HandlerList.unregisterAll(this);
-        RisenMain.currentBoss = null;
+        RisenMain.currentBoss = null; //have existential crisis
     }
 
     private BukkitTask timerInit(){

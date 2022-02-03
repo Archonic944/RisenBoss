@@ -157,6 +157,7 @@ public class AbilitySelectInventory implements GUIHolder {
     public static String nextSlotProgress(int winsToNext, int abilitySlots){
         StringBuilder nextSlotProgress = new StringBuilder();
         if(abilitySlots >= RisenUtils.MAX_ABILITY_SLOTS) nextSlotProgress.append(ChatColor.YELLOW).append("You've reached the max amount of ability slots!!");
+        else if(winsToNext == 0) nextSlotProgress.append(ChatColor.YELLOW.toString() + ChatColor.BOLD + "NEW SLOT UNLOCKED!");
         else{
             int wins = RisenUtils.WINS_PER_ABILITY_SLOT - winsToNext;
             nextSlotProgress.append(ChatColor.GREEN);
