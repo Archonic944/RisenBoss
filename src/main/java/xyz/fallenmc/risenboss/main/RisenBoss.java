@@ -3,27 +3,33 @@ package xyz.fallenmc.risenboss.main;
 import de.tr7zw.nbtapi.NBTItem;
 import itempackage.Items;
 import me.zach.DesertMC.ClassManager.TravellerEvents;
+import me.zach.DesertMC.GameMechanics.Events;
+import me.zach.DesertMC.GameMechanics.hitbox.HitboxListener;
+import me.zach.DesertMC.Prefix;
+import me.zach.DesertMC.Utils.Config.ConfigUtils;
 import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.DesertMC.Utils.Particle.ParticleEffect;
+import me.zach.DesertMC.Utils.PlayerUtils;
 import me.zach.DesertMC.Utils.StringUtils.StringUtil;
 import me.zach.DesertMC.Utils.nbt.NBTUtil;
 import me.zach.DesertMC.Utils.structs.Pair;
-import net.jitse.npclib.api.NPC;
-import net.jitse.npclib.api.state.NPCSlot;
+import me.zach.artifacts.gui.helpers.ArtifactUtils;
+import me.zach.artifacts.gui.inv.ArtifactData;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.inventivetalent.bossbar.BossBar;
 import org.inventivetalent.bossbar.BossBarAPI;
 import xyz.fallenmc.risenboss.main.abilities.Ability;
 import xyz.fallenmc.risenboss.main.abilities.RisenAbility;
@@ -33,20 +39,24 @@ import xyz.fallenmc.risenboss.main.rewards.BossReward;
 import xyz.fallenmc.risenboss.main.rewards.RewardType;
 import xyz.fallenmc.risenboss.main.utils.RisenUtils;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 
 public final class RisenBoss implements Listener {
     public static final BossBarAPI.Color BAR_COLOR = BossBarAPI.Color.RED;
+    public static final DecimalFormat fallenPieceDefenseBonusFormatter = new DecimalFormat();
+    static{
+        fallenPieceDefenseBonusFormatter.setMaximumFractionDigits(2);
+    }
     public static final int HEALTH_BONUS = 16;
-    private final List<BossBar> bars = new ArrayList<>();
     public final HashMap<String, Ability> abilityInstances = new HashMap<>();
     public final String rankColor;
     public final HashMap<UUID, Double> damagers = new HashMap<>();
     private final boolean removedFromNotifs;
     RisenData data;
-    final String SEPARATOR = StringUtil.getCenteredLine(ChatColor.GRAY + "---------");
+    final String SEPARATOR = StringUtil.getCenteredLine(ChatColor.DARK_GRAY + "---------");
     public RisenBoss(Player player){
         data = RisenUtils.getData(player);
         RisenMain.alreadyUsed.remove(player.getUniqueId());
@@ -55,27 +65,13 @@ public final class RisenBoss implements Listener {
         name = player.getName();
         //saving inventory
         prevPlayerInventory = player.getInventory().getContents();
+        // deselecting/saving previously selected artifacts
+        ArtifactData ad = ConfigUtils.getAD(player);
+        previousArtifacts = ad.getSelected();
+        ad.setSelected(ArtifactUtils.sized(4));
         //setting rankColor for quick access
         rankColor = MiscUtils.getRankColor(uuid);
-        //preparing dummy player npc for the wizard class's "Dummy!" ability
-        dummyPlayer = RisenMain.getNpcLib().createNPC(Collections.singletonList(rankColor + name));
-        //getting skin signature and id from the player
-        /*
-        EntityPlayer NMSPlayer = ((CraftPlayer) player).getHandle();
-        GameProfile profile = NMSPlayer.getProfile();
-        Property property = profile.getProperties().get("textures").iterator().next();
-        String value = property.getValue();
-        String signature = property.getSignature();
-        dummyPlayer.setSkin(new Skin(value, signature));
-         */
-        //setting slots on the npc to match the player's armor (as well as getting the players inventory)
         PlayerInventory playerInventory = player.getInventory();
-        if(playerInventory.getBoots() != null) dummyPlayer.setItem(NPCSlot.BOOTS, playerInventory.getBoots());
-        if(playerInventory.getLeggings() != null) dummyPlayer.setItem(NPCSlot.LEGGINGS, playerInventory.getLeggings());
-        if(playerInventory.getChestplate() != null) dummyPlayer.setItem(NPCSlot.CHESTPLATE, playerInventory.getChestplate());
-        if(playerInventory.getHelmet() != null) dummyPlayer.setItem(NPCSlot.HELMET, playerInventory.getHelmet());
-        dummyPlayer.setLocation(player.getLocation());
-        dummyPlayer.create();
         //replacing inventory
         playerInventory.clear();
         playerInventory.setItem(0, Items.getRisenBlade());
@@ -89,21 +85,21 @@ public final class RisenBoss implements Listener {
         }
         //temporarily removing from Traveller notifications because of action bar cooldown messages
         removedFromNotifs = TravellerEvents.blockNotifs.remove(uuid);
-        //setting max health
+        //setting max health, resetting traveller
+        TravellerEvents.resetTraveller(player);
         player.setMaxHealth(player.getMaxHealth() + HEALTH_BONUS);
         player.setHealth(player.getMaxHealth());
         //initializing timers and other things
         initRunnables();
         Bukkit.getPluginManager().registerEvents(this, RisenMain.getInstance());
-        for(Player otherPlayer : Bukkit.getOnlinePlayers()){
+        for(Player otherPlayer : Bukkit.getServer().getOnlinePlayers()){
             setBar(otherPlayer);
         }
     }
 
-
+    private final List<Integer> previousArtifacts;
     private static final int secondsToReach = 600;
     public final String name;
-    public final NPC dummyPlayer;
     private int damageTaken = 0;
     private int secondsLeft = secondsToReach;
     private BukkitTask timer;
@@ -143,39 +139,40 @@ public final class RisenBoss implements Listener {
 
     public void bossDamage(double damage){
         damageTaken += damage;
-        Player player = getPlayer();
-        float healthFloat = (float) (player.getHealth() / player.getMaxHealth());
-        for(BossBar bar : bars){
-            bar.setProgress(healthFloat);
-        }
+        refreshBarHealth();
     }
 
     public void bossAttack(double damage){
         damageDealt += damage;
     }
 
-
     private void initRunnables(){
         Player player = getPlayer();
         timer = timerInit();
-        callout = calloutInit(rankColor + player.getName());
+        callout = calloutInit(player.getDisplayName());
     }
 
     public void endBoss(EndReason reason){
-        dummyPlayer.destroy();
+        RisenMain.currentBoss = null; //have existential crisis
+        for(Ability ability : abilityInstances.values()){
+            ability.abort(this);
+        }
+        HandlerList.unregisterAll(this);
         timer.cancel();
         callout.cancel();
         Player player = getPlayer();
+        Bukkit.getScheduler().runTask(RisenMain.getInstance(), () -> player.setFireTicks(0));
+        PlayerUtils.setAbsorption(player, 0);
+        player.playSound(player.getLocation(), Sound.ENDERDRAGON_DEATH, 10, 1);
         double oldHealth = player.getMaxHealth() - HEALTH_BONUS;
         player.setHealth(oldHealth);
         player.setMaxHealth(oldHealth);
-        for(Player p : Bukkit.getOnlinePlayers())
+        for(Player p : Bukkit.getServer().getOnlinePlayers()){
             if(!p.canSee(player)) p.showPlayer(player);
-        for(BossBar bar : bars){
-            bar.removePlayer(bar.getPlayers().iterator().next());
+            BossBarAPI.removeBar(p);
         }
-        bars.clear();
         player.getInventory().setContents(prevPlayerInventory);
+        ConfigUtils.getAD(player).setSelected(previousArtifacts);
         for(ItemStack armor : player.getEquipment().getArmorContents()){
             if(armor != null && armor.getType() != Material.AIR){
                 NBTItem nbt = new NBTItem(armor);
@@ -184,14 +181,17 @@ public final class RisenBoss implements Listener {
                     if(defense < 15){
                         float newDefense = defense + 0.25f;
                         NBTUtil.checkCustomAttr(nbt).setFloat("DEFENSE", newDefense);
-                        ItemMeta meta = armor.getItemMeta();
-                        List<String> lore = new ArrayList<>(meta.getLore());
+                        ItemMeta newMeta = nbt.getItem().getItemMeta();
+                        List<String> lore = new ArrayList<>(newMeta.getLore());
                         for(int i = 0, loreSize = lore.size(); i < loreSize; i++){
                             String str = lore.get(i);
                             //this physically hurts me, but I don't have time to make a better item system
-                            if(ChatColor.stripColor(str).startsWith("Current defense bonus:"))
-                                lore.set(i, str.replace(defense + "%", newDefense + "%"));
+                            if(ChatColor.stripColor(str).contains("Current defense bonus:")){
+                                lore.set(i, ChatColor.GOLD + "Current defense bonus: " + ChatColor.RED + fallenPieceDefenseBonusFormatter.format(newDefense) + "%");
+                            }
                         }
+                        newMeta.setLore(lore);
+                        armor.setItemMeta(newMeta);
                     }
                 }else Bukkit.getLogger().warning("Armor piece for player " + player.getUniqueId() + " not Fallen piece when ending Risen Boss!\nInstead, it was " + armor);
             }else Bukkit.getLogger().warning("Player " + player.getUniqueId() + " not wearing an armor piece when risen boss ended!");
@@ -209,7 +209,7 @@ public final class RisenBoss implements Listener {
                 nextSlotMessage = AbilitySelectInventory.nextSlotProgress(data.getWinsToNextSlot(), data.getAbilitySlots());
                 if(data.getWinsToNextSlot() <= 0){
                     data.setAbilitySlots(data.getAbilitySlots() + 1);
-                    if(data.getAbilitySlots() == RisenUtils.MAX_ABILITY_SLOTS) nextSlotMessage = ChatColor.AQUA.toString() + ChatColor.BOLD + "ABILITY SLOTS MAXED! " + ChatColor.YELLOW + "(" + RisenUtils.MAX_ABILITY_SLOTS + "/" + RisenUtils.MAX_ABILITY_SLOTS + ")";
+                    if(data.getAbilitySlots() >= RisenUtils.MAX_ABILITY_SLOTS) nextSlotMessage = ChatColor.AQUA.toString() + ChatColor.BOLD + "ABILITY SLOTS MAXED! " + ChatColor.YELLOW + "(" + RisenUtils.MAX_ABILITY_SLOTS + "/" + RisenUtils.MAX_ABILITY_SLOTS + ")";
                     player.playSound(player.getLocation(), Sound.LEVEL_UP, 10, 1.05f);
                     data.setWinsToNextSlot(RisenUtils.WINS_PER_ABILITY_SLOT);
                 }
@@ -261,34 +261,36 @@ public final class RisenBoss implements Listener {
         if(!damagers.isEmpty()){
             for(Pair<Player, Double> damagerPair : damagersSorted){
                 Player damager = damagerPair.first;
-                List<BossReward> damagerRewards = new ArrayList<>();
-                int place = MiscUtils.indexOf(damagersSorted, damagerPair);
-                if(place < 3){
-                    int upgradeStonesAmount = random.nextInt(1, 3);
-                    if(place < 2){
-                        upgradeStonesAmount += random.nextInt(1, 3);
-                        damagerRewards.add(new BossReward(RewardType.IRON_HAMMER, 1));
-                        if(place < 1){
-                            upgradeStonesAmount += random.nextInt(1, 4);
-                            damagerRewards.add(0, new BossReward(RewardType.DIAMOND_HAMMER, 1));
-                            if(random.nextDouble() < 0.15) rewards.add(0, new BossReward(RewardType.SPECIAL_HAMMER, 1));
+                if(damager != null){
+                    damager.playSound(damager.getLocation(), Sound.ENDERDRAGON_DEATH, 10, 1);
+                    List<BossReward> damagerRewards = new ArrayList<>();
+                    int place = MiscUtils.indexOf(damagersSorted, damagerPair);
+                    if(place < 3){
+                        int upgradeStonesAmount = random.nextInt(1, 3);
+                        if(place < 2){
+                            upgradeStonesAmount += random.nextInt(1, 3);
+                            damagerRewards.add(new BossReward(RewardType.IRON_HAMMER, 1));
+                            if(place < 1){
+                                upgradeStonesAmount += random.nextInt(1, 4);
+                                damagerRewards.add(0, new BossReward(RewardType.DIAMOND_HAMMER, 1));
+                                if(random.nextDouble() < 0.15)
+                                    rewards.add(0, new BossReward(RewardType.SPECIAL_HAMMER, 1));
+                            }
                         }
+                        damagerRewards.add(new BossReward(RewardType.UPGRADE_STONES, upgradeStonesAmount));
                     }
-                    damagerRewards.add(new BossReward(RewardType.UPGRADE_STONES, upgradeStonesAmount));
+                    int reversePlace = damagersSorted.length - place;
+                    int damagerGemsAmount = reversePlace * 100 + damageDealt * 8;
+                    if(damagerGemsAmount > 0) damagerRewards.add(new BossReward(RewardType.GEMS, damagerGemsAmount));
+                    int damagerSoulsAmount = reversePlace * 8 + damageDealt / 5;
+                    if(damagerSoulsAmount > 0) damagerRewards.add(new BossReward(RewardType.SOULS, damagerSoulsAmount));
+                    int damagerEXPAmount = reversePlace * 170 + damageDealt * 10;
+                    if(damagerEXPAmount > 0) damagerRewards.add(new BossReward(RewardType.EXP, damagerEXPAmount));
+                    damager.sendMessage(endMessage(rewards, damagerPair.second, place + 1, reason.won ? ChatColor.RED : ChatColor.GREEN, reason.won ? "RISEN BOSS WINS" : "RISEN BOSS VANQUISHED", reason.won ? "You fought well (probably)!" : "Spectacular fight!", null));
+                    grantAllTo(damagerRewards, damager, RisenUtils.getData(damager));
                 }
-                int reversePlace = damagersSorted.length - place;
-                int damagerGemsAmount = reversePlace * 100 + damageDealt * 8;
-                if(damagerGemsAmount > 0) damagerRewards.add(new BossReward(RewardType.GEMS, damagerGemsAmount));
-                int damagerSoulsAmount = reversePlace * 8 + damageDealt / 5;
-                if(damagerSoulsAmount > 0) damagerRewards.add(new BossReward(RewardType.SOULS, damagerSoulsAmount));
-                int damagerEXPAmount = reversePlace * 170 + damageDealt * 10;
-                if(damagerEXPAmount > 0) damagerRewards.add(new BossReward(RewardType.EXP, damagerEXPAmount));
-                damager.sendMessage(endMessage(rewards, damagerPair.second, place + 1, reason.won ? ChatColor.RED : ChatColor.GREEN, reason.won ? "RISEN BOSS WINS" : "RISEN BOSS VANQUISHED", reason.won ? "You fought well (probably)!" : "Spectacular fight!", null));
-                grantAllTo(damagerRewards, damager, RisenUtils.getData(damager));
             }
         }
-        HandlerList.unregisterAll(this);
-        RisenMain.currentBoss = null; //have existential crisis
     }
 
     private BukkitTask timerInit(){
@@ -296,15 +298,29 @@ public final class RisenBoss implements Listener {
             @Override
             public void run() {
                 secondsLeft--;
-                for(BossBar bar : bars){
-                    bar.setMessage(barText());
+                for(Player player : Bukkit.getServer().getOnlinePlayers()){
+                    if(BossBarAPI.hasBar(player)){
+                        BossBarAPI.setMessage(player, barText());
+                    }
                 }
                 if(secondsLeft <= 0){
+                    Events.respawn(getPlayer());
                     endBoss(EndReason.TIMER_FINISHED);
                     cancel();
                 }
             }
         }.runTaskTimer(RisenMain.getInstance(), 20, 20);
+    }
+    //broken: BossBarAPI resets bar health when message is set
+    public void refreshBarHealth(){
+        /*
+        float healthFloat = barProgress();
+        for(Player p : Bukkit.getServer().getOnlinePlayers()){
+            if(BossBarAPI.hasBar(p)){
+                BossBarAPI.setHealth(p, healthFloat);
+            }
+        }
+         */
     }
 
     private BukkitTask flamesInit(){
@@ -320,18 +336,17 @@ public final class RisenBoss implements Listener {
     private BukkitTask calloutInit(String playerName){
         return Bukkit.getScheduler().runTaskTimer(RisenMain.getInstance(), () -> {
             Location location = getPlayer().getLocation();
-            Bukkit.getServer().broadcastMessage(playerName + ChatColor.GRAY + " is at " + ChatColor.YELLOW + "(" + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ")" + ChatColor.YELLOW + "!" + ChatColor.GRAY + " Come and get them!");
-            MiscUtils.spawnFirework(location, 3, false, true, FireworkEffect.Type.BURST, Color.YELLOW);
-            MiscUtils.spawnFirework(location, 3, false, true, FireworkEffect.Type.BURST, Color.YELLOW);
+            Bukkit.getServer().broadcastMessage(Prefix.RISEN_BOSS + " " + playerName + ChatColor.GRAY + " is at " + ChatColor.YELLOW + "(" + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ")" + ChatColor.YELLOW + "!" + ChatColor.GRAY + " Come and get them!");
+            MiscUtils.spawnFirework(location, 2, false, true, FireworkEffect.Type.BURST, Color.YELLOW);
         }, 800, 800);
     }
 
     private List<String> damagersMessage(Pair<Player, Double>[] top){
         ArrayList<String> message = new ArrayList<>();
         //sometimes, microptimizations just tack off speed, development and CPU.
-        if(0 < top.length) message.add(ChatColor.RED + ChatColor.BOLD.toString() + "1st " + MiscUtils.getRankColor(top[0].first) + top[0].first.getName() + ChatColor.GRAY + " - " + ChatColor.RED + top[0].second + " damage");
-        if(1 < top.length) message.add(ChatColor.GOLD + ChatColor.BOLD.toString() + "2nd " + MiscUtils.getRankColor(top[1].first) + top[1].first.getName() + ChatColor.GRAY + " - " + ChatColor.GOLD + top[1].second + " damage");
-        if(2 < top.length) message.add(ChatColor.YELLOW + ChatColor.BOLD.toString() + "3rd " + MiscUtils.getRankColor(top[2].first) + top[2].first.getName() + ChatColor.GRAY + " - " + ChatColor.YELLOW + top[2].second + " damage");
+        if(0 < top.length) message.add(ChatColor.RED + ChatColor.BOLD.toString() + "1st " + top[0].first.getDisplayName() + ChatColor.GRAY + " - " + ChatColor.GOLD + ((int) top[0].second.doubleValue()) + ChatColor.GRAY + " damage");
+        if(1 < top.length) message.add(ChatColor.GOLD + ChatColor.BOLD.toString() + "2nd " + top[1].first.getDisplayName() + ChatColor.GRAY + " - " + ChatColor.GOLD + ((int) top[1].second.doubleValue()) + ChatColor.GRAY + " damage");
+        if(2 < top.length) message.add(ChatColor.YELLOW + ChatColor.BOLD.toString() + "3rd " + top[2].first.getDisplayName() + ChatColor.GRAY + " - " + ChatColor.GOLD + ((int) top[2].second.doubleValue()) + ChatColor.GRAY + " damage");
         centerList(message);
         return message;
     }
@@ -358,9 +373,9 @@ public final class RisenBoss implements Listener {
         message.add(wrapper.toString());
         message.add(color + ChatColor.BOLD.toString() + header);
         message.add("");
-        message.add(ChatColor.GOLD + "Damage dealt: " + ChatColor.RED + damageDealt);
+        message.add(ChatColor.GOLD + "Damage dealt: " + ChatColor.RED + (int) damageDealt);
         message.add(ChatColor.GOLD + "Boss' damage taken: " + ChatColor.RED + damageTaken);
-        if(place > 0) message.add(ChatColor.GRAY + "Your place: " + ChatColor.YELLOW + place);
+        if(place > 0) message.add(ChatColor.GRAY + "Your place: " + ChatColor.GOLD + place);
         else if(nextSlotMessage != null) message.add(nextSlotMessage);
         centerList(message);
         addSection(message, damagersMessage(getDamagersSorted()));
@@ -391,10 +406,13 @@ public final class RisenBoss implements Listener {
         int secondsWithoutMinutes = secondsLeft % 60;
         return net.md_5.bungee.api.ChatColor.GOLD + net.md_5.bungee.api.ChatColor.BOLD.toString() + "RISEN BOSS: " + rankColor + net.md_5.bungee.api.ChatColor.BOLD + name + " " + net.md_5.bungee.api.ChatColor.YELLOW +  String.format("%d:%02d", minutesLeft, secondsWithoutMinutes);
     }
-
+    //broken: bar resets health when setting bar message
     private float barProgress(){
+        return 100;
+        /*
         Player player = getPlayer();
-        return ((float) player.getHealth() / (float) player.getMaxHealth());
+        return ((float) player.getHealth() / (float) player.getMaxHealth()) * 100;
+         */
     }
 
     @EventHandler
@@ -403,32 +421,47 @@ public final class RisenBoss implements Listener {
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent event){
-        Player player = event.getPlayer();
-        for(int i = 0, size = bars.size(); i<size; i++){
-            BossBar bar = bars.get(i);
-            if(bar.getPlayers().iterator().next().getUniqueId().equals(player.getUniqueId())){
-                bar.removePlayer(player);
-                bars.remove(i);
-                break;
+    public void onInventoryClick(InventoryClickEvent event){
+        if(event.getWhoClicked().getUniqueId().equals(uuid))
+            event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onInventoryOpen(InventoryOpenEvent event){
+        if(event.getPlayer().getUniqueId().equals(uuid))
+            event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onMove(PlayerMoveEvent event){
+        if(event.getPlayer().getUniqueId().equals(uuid)){
+            Location to = event.getTo();
+            Location from = event.getFrom();
+            if(HitboxListener.isInSafeZone(to) && !HitboxListener.isInSafeZone(from)){
+                event.setTo(from);
+                event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.NOTE_BASS, 10, 1);
             }
         }
     }
 
-    public void setBar(Player player){
+    private void setBar(Player player){
         TextComponent component = new TextComponent(barText());
-        bars.add(BossBarAPI.addBar(player, component, BAR_COLOR, BossBarAPI.Style.PROGRESS, barProgress()));
+        if(!BossBarAPI.hasBar(player)) BossBarAPI.addBar(player, component, BAR_COLOR, BossBarAPI.Style.PROGRESS, barProgress());
     }
 
     @SuppressWarnings("unchecked")
     public Pair<Player, Double>[] getDamagersSorted(){
-        List<Map.Entry<UUID, Double>> damagersSorted = MiscUtils.sortValues(damagers);
-        int pairsSize = Math.min(damagersSorted.size(), 3);
-        Pair<Player, Double>[] damagersPairs = (Pair<Player, Double>[]) new Pair[pairsSize];
-        for(int i = 0; i<pairsSize; i++){
-            damagersPairs[i] = new Pair<>(Bukkit.getPlayer(damagersSorted.get(i).getKey()), damagersSorted.get(i).getValue());
+        if(damagers.isEmpty()) return new Pair[0];
+        else{
+            System.out.println("not empty");
+            List<Map.Entry<UUID, Double>> damagersSorted = MiscUtils.sortValues(damagers);
+            int pairsSize = Math.min(damagersSorted.size(), 3);
+            Pair<Player, Double>[] damagersPairs = (Pair<Player, Double>[]) new Pair[pairsSize];
+            for(int i = 0; i < pairsSize; i++){
+                damagersPairs[i] = new Pair<>(Bukkit.getPlayer(damagersSorted.get(i).getKey()), damagersSorted.get(i).getValue());
+            }
+            return damagersPairs;
         }
-        return damagersPairs;
     }
 
     @SuppressWarnings("unused")

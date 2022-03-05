@@ -4,9 +4,7 @@ import itempackage.Items;
 import me.zach.DesertMC.Utils.Config.ConfigUtils;
 import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.artifacts.gui.inv.ArtifactData;
-import me.zach.databank.DBCore;
 import me.zach.databank.saver.PlayerData;
-import me.zach.databank.saver.SaveManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -41,7 +39,7 @@ public enum RewardType {
                     if(inventory.firstEmpty() == -1) sucess = false;
                     else inventory.addItem(hammer);
                 }else{
-                    Item droppedHammer = player.getWorld().dropItemNaturally(player.getLocation(), hammer);
+                    Item droppedHammer = player.getWorld().dropItem(player.getLocation(), hammer);
                     MiscUtils.setOwner(droppedHammer, player);
                 }
             }

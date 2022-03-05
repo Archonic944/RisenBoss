@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.CobbleSword.NachoSpigot:api:c00180190e">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/CobbleSword/NachoSpigot/api/c00180190e/api-c00180190e.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/CobbleSword/NachoSpigot/api/c00180190e/api-c00180190e-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/CobbleSword/NachoSpigot/api/c00180190e/api-c00180190e-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

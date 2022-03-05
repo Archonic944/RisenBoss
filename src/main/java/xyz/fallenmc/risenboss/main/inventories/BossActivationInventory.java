@@ -5,6 +5,7 @@ import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.DesertMC.Utils.StringUtils.StringUtil;
 import me.zach.DesertMC.Utils.gui.GUIHolder;
 import me.zach.DesertMC.Utils.nbt.NBTUtil;
+import me.zach.DesertMC.Prefix;
 import xyz.fallenmc.risenboss.main.data.RisenData;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
@@ -65,9 +66,9 @@ public class BossActivationInventory implements GUIHolder {
         if(rewardsDesc.isEmpty()) rewardsDesc.add(ChatColor.GRAY + "None so far");
         else rewardsDesc.add(0, "");
         ItemStack earnedRewardsItem = MiscUtils.generateItem(Material.DIAMOND, ChatColor.AQUA + "Earned Rewards", rewardsDesc, (byte) -1, 1);
-        inventory.setItem(centerRow + 3, selectAbilities);
-        inventory.setItem(centerRow + 4, risenCore);
-        inventory.setItem(centerRow + 5, earnedRewardsItem);
+        inventory.setItem(centerRow + abilitiesSlot, selectAbilities);
+        inventory.setItem(centerRow + coreSlot, risenCore);
+        inventory.setItem(centerRow + rewardsSlot, earnedRewardsItem);
         //calculating animation borders
         for(int i = 0; i<borders.length; i++){
             //resolving corners (ymin isn't necessary since it's always equal to xmin)
@@ -163,13 +164,15 @@ public class BossActivationInventory implements GUIHolder {
                         RisenMain.currentBoss = new RisenBoss(player);
                         data.setBossReady(false);
                         player.teleport(spawn);
-                        player.getServer().broadcastMessage(ChatColor.RED + ChatColor.BOLD.toString() + "RISEN BOSS " + player.getDisplayName() + ChatColor.GRAY + " became a risen boss! Fight them to earn rewards!");
+                        player.getServer().broadcastMessage(Prefix.RISEN_BOSS + " " + player.getDisplayName() + ChatColor.GRAY + " became a risen boss! Fight them to earn rewards!");
                         StringUtil.sendCenteredWrappedMessage(player,
                                 new StringUtil.ChatWrapper('=', ChatColor.YELLOW, true, false),
                                 ChatColor.GREEN + ChatColor.MAGIC.toString() + "/" + ChatColor.GREEN + ChatColor.BOLD + "YOU HAVE ARISEN" + ChatColor.GREEN + ChatColor.MAGIC + "\\\n",
                                 ChatColor.GREEN + "You became a risen boss!",
                                 ChatColor.GREEN + "Use abilities by right clicking the hotbar items!",
-                                ChatColor.GREEN + "Survive for 10 minutes and deal damage to gain the best rewards!\n",
+                                ChatColor.GREEN + "Survive for 10 minutes and deal damage to",
+                                ChatColor.GREEN + "gain the best rewards!",
+                                "",
                                 ChatColor.GOLD + ChatColor.BOLD.toString() + "GOOD LUCK!");
                         for(Player otherPlayer : Bukkit.getOnlinePlayers()){
                             otherPlayer.playSound(otherPlayer.getLocation(), Sound.WITHER_SPAWN, 10, 1);

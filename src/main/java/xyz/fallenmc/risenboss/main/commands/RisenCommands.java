@@ -1,5 +1,6 @@
 package xyz.fallenmc.risenboss.main.commands;
 
+import me.zach.DesertMC.GameMechanics.Events;
 import me.zach.DesertMC.Utils.MiscUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -40,8 +41,9 @@ public class RisenCommands implements CommandExecutor {
                         reason = RisenBoss.EndReason.UNKNOWN_LOSS;
                     if(reason == null) return false;
                     else{
+                        Events.respawn(currentBoss.getPlayer());
                         currentBoss.endBoss(reason);
-                        commandSender.sendMessage(ChatColor.GREEN + "Ended " + currentBoss.name + "'s Risen Boss session with reason " + reason.name());
+                        commandSender.sendMessage(ChatColor.YELLOW + "Ended " + currentBoss.name + "'s Risen Boss session with reason " + reason.name());
                     }
                 }
             }
