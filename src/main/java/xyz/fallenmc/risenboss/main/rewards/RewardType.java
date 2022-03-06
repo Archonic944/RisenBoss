@@ -22,7 +22,7 @@ public enum RewardType {
                     if(inventory.firstEmpty() == -1) sucess = false;
                     else inventory.addItem(hammer);
                 }else{
-                    Item droppedHammer = player.getWorld().dropItemNaturally(player.getLocation(), hammer);
+                    Item droppedHammer = player.getWorld().dropItem(player.getLocation(), hammer);
                     MiscUtils.setOwner(droppedHammer, player);
                 }
             }
@@ -56,7 +56,7 @@ public enum RewardType {
                     if(inventory.firstEmpty() == -1) sucess = false;
                     else inventory.addItem(hammer);
                 }else{
-                    Item droppedHammer = player.getWorld().dropItemNaturally(player.getLocation(), hammer);
+                    Item droppedHammer = player.getWorld().dropItem(player.getLocation(), hammer);
                     MiscUtils.setOwner(droppedHammer, player);
                 }
             }
