@@ -1,6 +1,5 @@
 package xyz.fallenmc.risenboss.main.events;
 
-import me.zach.DesertMC.GameMechanics.Events;
 import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.DesertMC.Utils.nbt.NBTUtil;
 import org.bukkit.ChatColor;
@@ -14,9 +13,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import xyz.fallenmc.risenboss.main.RisenBoss;
 import xyz.fallenmc.risenboss.main.RisenMain;
 import xyz.fallenmc.risenboss.main.abilities.Ability;
 import xyz.fallenmc.risenboss.main.utils.RisenUtils;
@@ -40,14 +41,6 @@ public class RisenEvents implements Listener {
     public void regainHealth(EntityRegainHealthEvent event){
         if(RisenUtils.isBoss(event.getEntity().getUniqueId()))
             RisenMain.currentBoss.refreshBarHealth();
-    }
-
-    @EventHandler
-    public void bossQuit(PlayerQuitEvent event){
-        UUID uuid = event.getPlayer().getUniqueId();
-        if(RisenUtils.isBoss(uuid)){
-            RisenMain.currentBoss.endBoss(RisenBoss.EndReason.BOSS_QUIT);
-        }
     }
 
     @EventHandler

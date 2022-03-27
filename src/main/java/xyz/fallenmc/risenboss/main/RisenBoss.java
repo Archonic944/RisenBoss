@@ -19,6 +19,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -161,14 +162,9 @@ public final class RisenBoss implements Listener {
         timer.cancel();
         callout.cancel();
         Player player = getPlayer();
-        Bukkit.getScheduler().runTask(RisenMain.getInstance(), () -> player.setFireTicks(0));
-        PlayerUtils.setAbsorption(player, 0);
         player.playSound(player.getLocation(), Sound.ENDERDRAGON_DEATH, 10, 1);
-        double oldHealth = player.getMaxHealth() - HEALTH_BONUS;
-        player.setHealth(oldHealth);
-        player.setMaxHealth(oldHealth);
+        //health removal handled by player respawn
         for(Player p : Bukkit.getServer().getOnlinePlayers()){
-            if(!p.canSee(player)) p.showPlayer(player);
             BossBarAPI.removeBar(p);
         }
         player.getInventory().setContents(prevPlayerInventory);
@@ -432,11 +428,12 @@ public final class RisenBoss implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onMove(PlayerMoveEvent event){
         if(event.getPlayer().getUniqueId().equals(uuid)){
             Location to = event.getTo();
             Location from = event.getFrom();
+            if(to.equals(from)) return;
             if(HitboxListener.isInSafeZone(to) && !HitboxListener.isInSafeZone(from)){
                 event.setTo(from);
                 event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.NOTE_BASS, 10, 1);
