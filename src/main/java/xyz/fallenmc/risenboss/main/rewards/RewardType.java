@@ -1,10 +1,12 @@
 package xyz.fallenmc.risenboss.main.rewards;
 
 import itempackage.Items;
+import me.zach.DesertMC.DesertMain;
 import me.zach.DesertMC.Utils.Config.ConfigUtils;
 import me.zach.DesertMC.Utils.MiscUtils;
 import me.zach.artifacts.gui.inv.ArtifactData;
 import me.zach.databank.saver.PlayerData;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -15,52 +17,46 @@ public enum RewardType {
     SPECIAL_HAMMER(ChatColor.LIGHT_PURPLE + "Special Hammer", "Full inventory (item(s) dropped)"){
         protected boolean grant(Player player, int amount){
             Inventory inventory = player.getInventory();
-            boolean sucess = true;
+            boolean success = inventory.firstEmpty() == -1;
             for(int i = 0; i<amount; i++){
                 ItemStack hammer = Items.getSpecialHammer();
-                if(sucess){
-                    if(inventory.firstEmpty() == -1) sucess = false;
-                    else inventory.addItem(hammer);
-                }else{
-                    Item droppedHammer = player.getWorld().dropItem(player.getLocation(), hammer);
-                    MiscUtils.setOwner(droppedHammer, player);
+                if(!inventory.addItem(hammer).isEmpty()){
+                    Item dropped = player.getWorld().dropItem(player.getLocation(), hammer);
+                    MiscUtils.setOwner(dropped, player);
+                    success = false;
                 }
             }
-            return sucess;
+            return success;
         }
     },
     DIAMOND_HAMMER(ChatColor.AQUA + "Diamond Hammer", "Full inventory (item(s) dropped)"){
         protected boolean grant(Player player, int amount){
             Inventory inventory = player.getInventory();
-            boolean sucess = true;
+            boolean success = inventory.firstEmpty() == -1;
             for(int i = 0; i<amount; i++){
                 ItemStack hammer = Items.getDiamondHammer();
-                if(sucess){
-                    if(inventory.firstEmpty() == -1) sucess = false;
-                    else inventory.addItem(hammer);
-                }else{
-                    Item droppedHammer = player.getWorld().dropItem(player.getLocation(), hammer);
-                    MiscUtils.setOwner(droppedHammer, player);
+                if(!inventory.addItem(hammer).isEmpty()){
+                    Item dropped = player.getWorld().dropItem(player.getLocation(), hammer);
+                    MiscUtils.setOwner(dropped, player);
+                    success = false;
                 }
             }
-            return sucess;
+            return success;
         }
     },
     IRON_HAMMER(ChatColor.AQUA + "Iron Hammer", " Full Inventory (item dropped with owner)"){
         protected boolean grant(Player player, int amount){
             Inventory inventory = player.getInventory();
-            boolean sucess = true;
+            boolean success = inventory.firstEmpty() == -1;
             for(int i = 0; i<amount; i++){
                 ItemStack hammer = Items.getSpecialHammer();
-                if(sucess){
-                    if(inventory.firstEmpty() == -1) sucess = false;
-                    else inventory.addItem(hammer);
-                }else{
-                    Item droppedHammer = player.getWorld().dropItem(player.getLocation(), hammer);
-                    MiscUtils.setOwner(droppedHammer, player);
+                if(!inventory.addItem(hammer).isEmpty()){
+                    Item dropped = player.getWorld().dropItem(player.getLocation(), hammer);
+                    MiscUtils.setOwner(dropped, player);
+                    success = false;
                 }
             }
-            return sucess;
+            return success;
         }
     },
     GEMS(ChatColor.GREEN + "Gems") {

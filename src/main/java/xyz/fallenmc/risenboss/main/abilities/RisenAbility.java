@@ -86,7 +86,7 @@ public enum RisenAbility implements Listener {
             if(activeRunnable != null) activeRunnable.cancel();
         }
     },
-    DODGE("Duck and Weave", "When this ability is activated, you'll have supreme agility for 7 seconds, granting you a 50% chance to dodge hits while crouching.", Material.ARROW, (byte) -1, 25, true, true, "scout", "+15% dodge chance"){
+    DODGE("Duck and Weave", "When this ability is activated, you'll have supreme agility for 5 seconds, granting you a 50% chance to dodge hits while crouching.", Material.ARROW, (byte) -1, 25, true, true, "scout", "+15% dodge chance"){
         final HashMap<UUID, Boolean> activePlayers = new HashMap<>(); //boolean: whether to multiply
         @EventHandler(priority = EventPriority.LOW)
         public void onHit(EntityDamageByEntityEvent event){
@@ -108,7 +108,7 @@ public enum RisenAbility implements Listener {
         protected boolean activationInternal(boolean multiply, RisenBoss player) {
             UUID uuid = player.getUUID();
             activePlayers.put(uuid, multiply);
-            Bukkit.getScheduler().runTaskLater(RisenMain.getInstance(), () -> activePlayers.remove(uuid), 140);
+            Bukkit.getScheduler().runTaskLater(RisenMain.getInstance(), () -> activePlayers.remove(uuid), 100);
             return true;
         }
 
@@ -292,7 +292,7 @@ public enum RisenAbility implements Listener {
                 }
             }
             UUID uuid = player.getUniqueId();
-            htMap.put(uuid, new Pair<>(htPairs, multiply ? 0.14f : 0.1f));
+            htMap.put(uuid, new Pair<>(htPairs, multiply ? 0.07f : (0.07f * 1.4f)));
             Bukkit.getScheduler().runTaskLater(RisenMain.getInstance(), () -> {
                 abort(uuid);
             }, 100);
@@ -345,7 +345,7 @@ public enum RisenAbility implements Listener {
             }
         }
     },
-    SPELL_BOMB("Spell Bomb",  "This ability shoots a flying potion out in the direction you're looking in, which, after a small duration, explodes, coating a 5-block radius in a dangerous, fast damaging cloud of... something.", Material.POTION, (byte) 16386, 20, false, true, "wizard", "Faster explosions"){
+    SPELL_BOMB("Spell Bomb",  "This ability shoots a flying potion out in the direction you're looking in, which, after a small duration, explodes, coating a 5-block radius in a dangerous, fast damaging cloud of... something. " + ChatColor.RED + "Be careful, Risen Boss! This ability damages you too!!§7", Material.POTION, (byte) 16386, 20, false, true, "wizard", "Faster explosions"){
         final HashMap<UUID, BukkitRunnable> abortMap = new HashMap<>();
         protected boolean activationInternal(boolean multiply, RisenBoss boss) {
             UUID uuid = boss.getUUID();
@@ -412,7 +412,7 @@ public enum RisenAbility implements Listener {
                 runnable.cancel();
         }
     },
-    /*Broken! May or may not fix later. But for now, it's probably going unused.*/DUMMY("Dummy!", "Trick your opponents with this ability by placing a dummy version of yourself, and turning you invisible for 2 seconds!", Material.LEATHER_CHESTPLATE, (byte) -1, 27, true, true, "wizard", "1.5x duration"){
+    DUMMY("Dummy!", "Trick your opponents with this ability by placing a dummy version of yourself, and turning you invisible for 2 seconds!", Material.LEATHER_CHESTPLATE, (byte) -1, 27, true, true, "wizard", "1.5x duration"){
         final HashMap<UUID, BukkitRunnable> dummyMap = new HashMap<>();
         protected boolean activationInternal(boolean multiply, RisenBoss boss){
             UUID uuid = boss.getUUID();
