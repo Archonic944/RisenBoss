@@ -450,7 +450,6 @@ public final class RisenBoss implements Listener {
     public Pair<Player, Double>[] getDamagersSorted(){
         if(damagers.isEmpty()) return new Pair[0];
         else{
-            System.out.println("not empty");
             List<Map.Entry<UUID, Double>> damagersSorted = MiscUtils.sortValues(damagers);
             int pairsSize = Math.min(damagersSorted.size(), 3);
             Pair<Player, Double>[] damagersPairs = (Pair<Player, Double>[]) new Pair[pairsSize];
